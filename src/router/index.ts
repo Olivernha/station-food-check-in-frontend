@@ -30,6 +30,16 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/unauthorized',
+    name: 'Unauthorized',
+    component: () => import('../views/UnauthorizedView.vue'),
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('@/views/AdminView.vue'),
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },

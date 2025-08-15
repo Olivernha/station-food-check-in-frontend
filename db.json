@@ -1,0 +1,78 @@
+{
+  "mealcollections": [
+    {
+      "id": "2025-08-13",
+      "date": "2025-08-13T00:00:00.000Z",
+      "departments": [
+        {
+          "id": "dept_it_2025-08-13",
+          "name": "IT",
+          "totalCount": 50
+        },
+        {
+          "id": "dept_hr_2025-08-13",
+          "name": "HR",
+          "totalCount": 30
+        }
+      ]
+    },
+    {
+      "id": "2025-08-15",
+      "date": "2025-08-15T00:00:00.000Z",
+      "departments": [
+        {
+          "id": "dept_it_2025-08-15",
+          "name": "IT",
+          "totalCount": 12
+        }
+      ]
+    }
+  ],
+  "collectionrecords": [
+    {
+      "id": "collection_1",
+      "department_id": "dept_it_2025-08-13",
+      "date": "2025-08-13T00:00:00.000Z",
+      "fullname": "Bob",
+      "adname": "boblin",
+      "count": 17,
+      "timestamp": "2025-08-13T10:30:00.000Z"
+    },
+    {
+      "id": "1755240299265_vanoqi3lg",
+      "department_id": "dept_it_2025-08-15",
+      "date": "2025-08-15T06:44:59.265Z",
+      "fullname": "John Doe",
+      "adname": "johndoe",
+      "count": 2,
+      "timestamp": "2025-08-15T06:44:59.265Z"
+    },
+    {
+      "id": "1755240517153_0tto94he6",
+      "department_id": "dept_it_2025-08-15",
+      "date": "2025-08-15T06:48:37.153Z",
+      "fullname": "John Doe",
+      "adname": "johndoe",
+      "count": 2,
+      "timestamp": "2025-08-15T06:48:37.153Z"
+    },
+    {
+      "id": "1755240545773_g5uimvy7a",
+      "department_id": "dept_it_2025-08-15",
+      "date": "2025-08-15T06:49:05.773Z",
+      "fullname": "John Doe",
+      "adname": "johndoe",
+      "count": 5,
+      "timestamp": "2025-08-15T06:49:05.773Z"
+    },
+    {
+      "id": "1755241074998_57rtkcguc",
+      "department_id": "dept_it_2025-08-15",
+      "date": "2025-08-15T06:57:54.998Z",
+      "fullname": "John Doe",
+      "entraAD": "johndoe",
+      "count": 3,
+      "timestamp": "2025-08-15T06:57:54.998Z"
+    }
+  ]
+}

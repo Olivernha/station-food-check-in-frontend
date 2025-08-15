@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import logo from '@/assets/img/tuaslogo.png'
 import AppHeader from '../components/AppHeader.vue'
 import ReadyToCollectStep from '../components/ReadyToCollectStep.vue'
@@ -62,8 +62,10 @@ import PortionSelectionStep from '../components/PortionSelectionStep.vue'
 import VoucherDisplayStep from '../components/VoucherDisplayStep.vue'
 import CompletionStep from '../components/CompletionStep.vue'
 import { useAuthStore } from '../stores/authStore'
+import { useMealStore } from '../stores/mealStore'
 
 const authStore = useAuthStore()
+const mealStore = useMealStore()
 
 // State management
 const currentStep = ref(2)
@@ -147,6 +149,19 @@ const completeCollection = async () => {
   isLoading.value = true
   transitionName.value = 'slide-right'
   try {
+    // Save meal collection data using the meal store
+    const success = await mealStore.saveMealCollection(
+      authStore.user?.fullname || 'Unknown User',
+      authStore.user?.entraAD || 'unknown',
+      authStore.user?.department || 'Operations',
+      totalPortions.value,
+    )
+
+    if (!success) {
+      console.error('Failed to save meal collection')
+      // You might want to show an error message to the user here
+    }
+
     await new Promise((resolve) => setTimeout(resolve, 800))
     currentStep.value = 5
   } finally {
@@ -159,6 +174,11 @@ const goHome = () => {
   currentStep.value = 2
   portionsToCollect.value = 1
 }
+
+// Initialize meal store data when component mounts
+onMounted(async () => {
+  await mealStore.initialize()
+})
 </script>
 
 <style scoped>

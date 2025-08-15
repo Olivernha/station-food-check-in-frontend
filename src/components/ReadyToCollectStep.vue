@@ -5,9 +5,27 @@
         mdi-account-check
       </v-icon>
 
-      <h1 class="text-h3 font-weight-bold mb-2 fade-in-up greeting-text">Hello, {{ userName }}</h1>
+      <h1 class="text-h3 font-weight-bold mb-3 fade-in-up greeting-text">Hello, {{ userName }}</h1>
 
-      <p class="text-h6 text-grey mb-8 fade-in-up subtitle-text">Ready to collect your meal?</p>
+      <div class="subtitle-container mb-8 fade-in-up subtitle-text">
+        <p class="text-h6 text-grey mb-2">Ready to collect your meal?</p>
+
+        <!-- Today's Collection Summary - Elegant chip integration -->
+        <div v-if="todaysCollections > 0" class="collection-status">
+          <v-chip
+            color="success"
+            variant="tonal"
+            size="large"
+            prepend-icon="mdi-check-circle"
+            class="collection-chip"
+          >
+            You have collected {{ todaysCollections }} portion{{
+              todaysCollections > 1 ? 's' : ''
+            }}
+            today
+          </v-chip>
+        </div>
+      </div>
 
       <v-btn
         color="success"
@@ -27,6 +45,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
+import { useMealStore } from '../stores/mealStore'
+import { useAuthStore } from '../stores/authStore'
+
 interface Props {
   userName: string
   isLoading: boolean
@@ -36,6 +58,28 @@ defineProps<Props>()
 defineEmits<{
   collectMeal: []
 }>()
+
+const mealStore = useMealStore()
+const authStore = useAuthStore()
+
+// Computed property to get today's collections for the current user
+const todaysCollections = computed(() => {
+  const today = mealStore.getTodayDateString()
+  const userFullname = authStore.user?.fullname || ''
+
+  return mealStore.mealCollections
+    .filter(
+      (collection) => collection.date.startsWith(today) && collection.fullname === userFullname,
+    )
+    .reduce((total, collection) => total + collection.count, 0)
+})
+
+// Initialize meal store data when component mounts
+onMounted(async () => {
+  if (mealStore.mealCollections.length === 0) {
+    await mealStore.fetchMealCollections()
+  }
+})
 </script>
 
 <style scoped>
@@ -93,6 +137,37 @@ defineEmits<{
 
 .subtitle-text {
   animation-delay: 0.5s;
+}
+
+.subtitle-container {
+  position: relative;
+}
+
+.collection-status {
+  margin-top: 8px;
+  animation: slideInFromBottom 0.6s ease-out;
+  animation-delay: 0.8s;
+  animation-fill-mode: both;
+}
+
+.collection-chip {
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  letter-spacing: 0.5px;
+  padding: 12px 20px !important;
+  height: auto !important;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+@keyframes slideInFromBottom {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .collect-btn {
