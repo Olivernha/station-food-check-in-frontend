@@ -2,46 +2,33 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
-// Mobile detection function
-const isMobileDevice = (): boolean => {
-  return (
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-    window.innerWidth <= 768
-  )
-}
-
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: () => {
+    name: 'Home',
+    component: () => import('../views/MobileView.vue'),
+    beforeEnter: (to, from, next) => {
       const authStore = useAuthStore()
-
-      // Auto-login for demo purposes
       if (!authStore.isAuthenticated) {
-        // Default to user login for mobile, admin for desktop
-        if (isMobileDevice()) {
-          return '/mobile'
-        } else {
-          return '/desktop'
-        }
+        next('/login')
+      } else {
+        next()
       }
-
-      if (authStore.isAdmin) {
-        return '/admin'
-      }
-
-      if (isMobileDevice()) {
-        return '/mobile'
-      }
-      return '/desktop'
     },
   },
   {
-    path: '/mobile',
-    name: 'Mobile',
-    component: () => import('../views/MobileView.vue'),
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginView.vue'),
+    beforeEnter: (to, from, next) => {
+      const authStore = useAuthStore()
+      if (authStore.isAuthenticated) {
+        next('/')
+      } else {
+        next()
+      }
+    },
   },
-
   {
     path: '/:pathMatch(.*)*',
     redirect: '/',

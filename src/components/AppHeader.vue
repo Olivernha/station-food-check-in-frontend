@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar :color="color" :dark="dark" :height="height" flat :class="headerClass">
+  <v-app-bar :color="color" :dark="dark" :height="height" flat :class="headerClass" elevation="2">
     <v-container>
       <v-row align="center" :justify="justify" no-gutters>
         <v-col cols="auto" v-if="showLogo">
@@ -53,17 +53,33 @@ interface Props {
 
 withDefaults(defineProps<Props>(), {
   color: 'primary',
-  dark: true,
-  height: 80,
+  dark: false,
+  height: 120,
   showLogo: true,
   logoAlt: 'Logo',
-  logoSize: 40,
+  logoSize: 60,
   icon: 'mdi-food',
-  iconSize: 32,
-  titleClass: 'text-h5 font-weight-semibold text-grey-darken-3',
-  subtitleClass: 'text-body-2 text-grey ma-0',
-  headerClass: '',
+  iconSize: 48,
+  titleClass: 'text-h2 font-weight-bold text-grey-darken-4',
+  subtitleClass: 'text-h6 text-grey-darken-2en-2 ma-0 font-weight-medium',
+  headerClass: 'header-shadow',
   justify: 'start',
   titleAlignment: '',
 })
 </script>
+
+<style scoped>
+.header-shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Enhanced title visibility */
+:deep(.v-toolbar-title) {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure proper contrast */
+.v-app-bar {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+</style>
