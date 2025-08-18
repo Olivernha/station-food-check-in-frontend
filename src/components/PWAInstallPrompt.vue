@@ -82,21 +82,15 @@
   </v-dialog>
 
   <!-- iOS Install Banner -->
-  <v-banner
-    v-model="showIOSBanner"
-    color="primary"
-    icon="mdi-cellphone-arrow-down"
-    lines="two"
-    sticky
-  >
+  <v-banner v-if="showIOSBanner" color="primary" icon="mdi-cellphone-arrow-down" lines="two" sticky>
     <v-banner-text>
       <strong>Install MealCheck App</strong><br />
       Add to your home screen for quick access
     </v-banner-text>
 
     <template v-slot:actions>
-      <v-btn variant="text" @click="showIOSInstallInstructions"> How? </v-btn>
-      <v-btn variant="text" @click="dismissIOSBanner"> Dismiss </v-btn>
+      <v-btn variant="text" color="white" @click="showIOSInstallInstructions"> How? </v-btn>
+      <v-btn variant="text" color="white" @click="dismissIOSBanner"> Dismiss </v-btn>
     </template>
   </v-banner>
 </template>
@@ -135,7 +129,7 @@ const detectIOSDevice = () => {
 const isAppInstalled = () => {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true
+    (window.navigator as unknown).standalone === true
   )
 }
 
@@ -179,6 +173,7 @@ const dismissIOSInstructions = () => {
 }
 
 const dismissIOSBanner = () => {
+  console.log('Dismissing iOS banner')
   showIOSBanner.value = false
   localStorage.setItem('pwa-install-dismissed', 'true')
   localStorage.setItem('pwa-install-dismissed-date', Date.now().toString())
