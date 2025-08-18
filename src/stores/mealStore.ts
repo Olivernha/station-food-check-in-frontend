@@ -277,6 +277,239 @@ export const useMealStore = defineStore('meal', () => {
     await Promise.all([fetchDailySummaries(), fetchMealCollections()])
   }
 
+  const getDepartmentNameFromId = (departmentId: string): string => {
+    // Extract department name from ID format: dept_department_name_date
+    const parts = departmentId.split('_')
+    if (parts.length >= 3) {
+      // Join all parts except 'dept' and the last part (date)
+      return parts
+        .slice(1, -1)
+        .join(' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase())
+    }
+    return 'Unknown Department'
+  }
+
+  const exportReportPDF = async (
+    selectedDate: string,
+    selectedDepartments: string[],
+  ): Promise<void> => {
+    // Dynamic import for jsPDF
+    const { jsPDF } = await import('jspdf')
+    const { default: autoTable } = await import('jspdf-autotable')
+
+    const reportDate = new Date(selectedDate).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+
+    // Filter and group data
+    const { departmentGroups, totalStaff, totalPortions } = getFilteredReportData(
+      selectedDate,
+      selectedDepartments,
+    )
+
+    const doc = new jsPDF()
+
+    // Header
+    doc.setFontSize(18)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Meal Check Report Dashboard', 105, 20, { align: 'center' })
+
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`For the date of ${reportDate}`, 105, 30, { align: 'center' })
+
+    // Summary
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Total Staff: ${totalStaff}`, 20, 45)
+    doc.text(`Total Portions: ${totalPortions}`, 150, 45)
+
+    let yPosition = 60
+
+    // Department sections
+    Object.keys(departmentGroups).forEach((departmentName) => {
+      const collections = departmentGroups[departmentName]
+      const deptStaff = collections.length
+      const deptPortions = collections.reduce((sum, c) => sum + c.count, 0)
+
+      // Department header
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text(departmentName, 20, yPosition)
+      yPosition += 10
+
+      // Table data
+      const tableData = collections.map((collection, index) => {
+        const time = new Date(collection.timestamp).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        })
+        return [(index + 1).toString(), collection.fullname, time, collection.count.toString()]
+      })
+
+      // Add table
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['s/n', 'Name', 'Time Collected', 'Meal Count']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
+        margin: { left: 20, right: 20 },
+        didDrawPage: (data) => {
+          yPosition = data.cursor?.y || yPosition
+        },
+      })
+
+      yPosition += 10
+
+      // Department footer
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Staff: ${deptStaff}`, 20, yPosition)
+      doc.text(`Portions: ${deptPortions}`, 150, yPosition)
+      yPosition += 20
+
+      // Check if we need a new page
+      if (yPosition > 250) {
+        doc.addPage()
+        yPosition = 20
+      }
+    })
+
+    // Save the PDF
+    doc.save(`meal-report-${selectedDate}.pdf`)
+  }
+
+  const exportReportExcel = async (
+    selectedDate: string,
+    selectedDepartments: string[],
+  ): Promise<void> => {
+    // Dynamic import for xlsx
+    const XLSX = await import('xlsx')
+
+    const reportDate = new Date(selectedDate).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+
+    // Filter and group data
+    const { departmentGroups, totalStaff, totalPortions } = getFilteredReportData(
+      selectedDate,
+      selectedDepartments,
+    )
+
+    const workbook = XLSX.utils.book_new()
+
+    // Summary sheet
+    const summaryData = [
+      ['Meal Check Report Dashboard'],
+      [`For the date of ${reportDate}`],
+      [''],
+      ['Total Staff', totalStaff.toString()],
+      ['Total Portions', totalPortions.toString()],
+      [''],
+    ]
+
+    // Add department data
+    Object.keys(departmentGroups).forEach((departmentName) => {
+      const collections = departmentGroups[departmentName]
+      const deptStaff = collections.length
+      const deptPortions = collections.reduce((sum, c) => sum + c.count, 0)
+
+      summaryData.push([departmentName])
+      summaryData.push(['s/n', 'Name', 'Time Collected', 'Meal Count'])
+
+      collections.forEach((collection, index) => {
+        const time = new Date(collection.timestamp).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        })
+        summaryData.push([
+          (index + 1).toString(),
+          collection.fullname,
+          time,
+          collection.count.toString(),
+        ])
+      })
+
+      summaryData.push([`Staff: ${deptStaff}`, '', '', `Portions: ${deptPortions}`])
+      summaryData.push([''])
+    })
+
+    const worksheet = XLSX.utils.aoa_to_sheet(summaryData)
+
+    // Set column widths
+    worksheet['!cols'] = [{ width: 15 }, { width: 25 }, { width: 15 }, { width: 12 }]
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Meal Report')
+
+    // Create detailed sheet for each department
+    Object.keys(departmentGroups).forEach((departmentName) => {
+      const collections = departmentGroups[departmentName]
+      const deptData = [[departmentName], [''], ['s/n', 'Name', 'Time Collected', 'Meal Count']]
+
+      collections.forEach((collection, index) => {
+        const time = new Date(collection.timestamp).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        })
+        deptData.push([
+          (index + 1).toString(),
+          collection.fullname,
+          time,
+          collection.count.toString(),
+        ])
+      })
+
+      const deptWorksheet = XLSX.utils.aoa_to_sheet(deptData)
+      deptWorksheet['!cols'] = [{ width: 10 }, { width: 25 }, { width: 15 }, { width: 12 }]
+
+      const sheetName =
+        departmentName.length > 31 ? departmentName.substring(0, 28) + '...' : departmentName
+      XLSX.utils.book_append_sheet(workbook, deptWorksheet, sheetName)
+    })
+
+    // Save the Excel file
+    XLSX.writeFile(workbook, `meal-report-${selectedDate}.xlsx`)
+  }
+
+  const getFilteredReportData = (selectedDate: string, selectedDepartments: string[]) => {
+    // Filter collections by date and departments
+    const filteredCollections = mealCollections.value.filter((collection) => {
+      const collectionDate = collection.date.split('T')[0]
+      const departmentName = getDepartmentNameFromId(collection.department_id)
+      return collectionDate === selectedDate && selectedDepartments.includes(departmentName)
+    })
+
+    // Group collections by department
+    const departmentGroups: { [key: string]: MealCollection[] } = {}
+    filteredCollections.forEach((collection) => {
+      const departmentName = getDepartmentNameFromId(collection.department_id)
+      if (!departmentGroups[departmentName]) {
+        departmentGroups[departmentName] = []
+      }
+      departmentGroups[departmentName].push(collection)
+    })
+
+    // Calculate totals
+    const totalStaff = Object.keys(departmentGroups).reduce((total, dept) => {
+      return total + departmentGroups[dept].length
+    }, 0)
+
+    const totalPortions = filteredCollections.reduce((total, collection) => {
+      return total + collection.count
+    }, 0)
+
+    return { filteredCollections, departmentGroups, totalStaff, totalPortions }
+  }
+
   const clearError = (): void => {
     error.value = null
   }
@@ -303,6 +536,9 @@ export const useMealStore = defineStore('meal', () => {
     getDepartmentStats,
     initialize,
     clearError,
+
+    exportReportPDF,
+    exportReportExcel,
 
     // Helpers
     getTodayDateString,

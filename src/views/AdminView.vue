@@ -6,17 +6,17 @@
       subtitle="Staff Meal Portion Tracking System"
       color="blue-grey-darken-3"
       :dark="true"
-      :height="100"
+      :height="70"
       :show-logo="true"
       icon="mdi-food"
-      :icon-size="32"
+      :icon-size="24"
       header-class="px-6"
-      justify="center"
-      title-class="text-h5 font-weight-medium"
-      subtitle-class="text-body-2 mb-0 text-grey-lighten-2"
+      justify="start"
+      title-class="text-h6 font-weight-medium text-white"
+      subtitle-class="text-caption text-grey-lighten-2"
     />
 
-    <v-main class="bg-grey-lighten-4">
+    <v-main class="bg-grey-lighten-5">
       <v-container fluid class="pa-4">
         <v-row>
           <!-- Main Content Area -->
@@ -25,21 +25,63 @@
             <StatsCard
               title="Daily Summary"
               :stats="summaryStats"
-              title-icon="mdi-chart-box"
+              title-icon="mdi-chart-box-outline"
               :date-text="currentDate"
-              stat-number-class="text-h2 font-weight-bold text-blue-grey-darken-2 mb-2"
+              stat-number-class="text-h2 font-weight-bold text-grey-darken-2 mb-1"
               elevation="1"
+              class="mb-4"
             />
 
-            <!-- Action Buttons -->
-            <ActionButtons :buttons="actionButtons" />
+            <!-- Export Button with Dropdown -->
+            <v-card elevation="1" class="mb-4">
+              <v-card-text class="d-flex ga-3">
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      color="blue-grey-darken-1"
+                      prepend-icon="mdi-file-export"
+                      append-icon="mdi-chevron-down"
+                      variant="outlined"
+                      v-bind="props"
+                    >
+                      Export Report
+                    </v-btn>
+                  </template>
+                  <v-list>
+
+                    <v-list-item @click="exportPDF">
+                      <template v-slot:prepend>
+                        <v-icon color="red-darken-1">mdi-file-pdf-box</v-icon>
+                      </template>
+                      <v-list-item-title>Export as PDF</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="exportExcel">
+                      <template v-slot:prepend>
+                        <v-icon color="green-darken-1">mdi-microsoft-excel</v-icon>
+                      </template>
+                      <v-list-item-title>Export as Excel</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+
+                <v-btn
+                  color="blue-grey-lighten-1"
+                  prepend-icon="mdi-refresh"
+                  variant="outlined"
+                  @click="refreshData"
+                >
+                  Refresh
+                </v-btn>
+              </v-card-text>
+            </v-card>
 
             <!-- Department Sections -->
             <DepartmentCard
               v-for="department in filteredDepartments"
               :key="department.name"
               :department="department"
-              elevation="1"
+              elevation="0"
+              class="mb-3"
             />
           </v-col>
 
@@ -52,6 +94,7 @@
               icon="mdi-calendar"
               v-model="selectedDate"
               :show-actions="false"
+              elevation="1"
               @update:model-value="updateData"
             />
 
@@ -59,10 +102,11 @@
             <FilterCard
               title="Department Filter"
               type="checkbox"
-              icon="mdi-filter"
+              icon="mdi-filter-variant"
               :options="allDepartments"
               v-model:selected-options="selectedDepartments"
               :actions="filterActions"
+              elevation="1"
             />
           </v-col>
         </v-row>
@@ -74,16 +118,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useMealStore } from '../stores/mealStore'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
+
 import AppHeader from '@/components/AppHeader.vue'
 import StatsCard from '@/components/StatsCard.vue'
-import ActionButtons from '@/components/ActionButtons.vue'
 import DepartmentCard from '@/components/DepartmentCard.vue'
 import FilterCard from '@/components/FilterCard.vue'
 
-const router = useRouter()
-const authStore = useAuthStore()
 const mealStore = useMealStore()
 
 interface Staff {
@@ -110,18 +150,18 @@ const allDepartments = [
   'Electrical Maintenance',
   'Project & Engineering',
   'Health Safety & Environment',
-  'Human Capital Management/Corporate Communications',
+  'Human Capital Management/Corporate Communication',
   'Information Technology',
   'Materials Management',
   'Mechanical Maintenance',
-  'O&E/Fuel Handling',
-  'O&E/Operation',
+  'O&G/Fuel Handling',
+  'O&G/Operation',
   'Purchasing',
   'Security',
   'Support Services',
 ]
 
-// Sample data matching the image
+// Sample data matching the image exactly
 const departments = ref<Department[]>([
   {
     name: 'Chemical & Environment',
@@ -143,58 +183,41 @@ const departments = ref<Department[]>([
     name: 'Electrical Maintenance',
     totalPortions: 35,
     staff: [
-      { id: 11, name: 'Mark Johnson', portions: 5 },
+      { id: 11, name: 'James Rodriguez', portions: 4 },
       { id: 12, name: 'Rachel Green', portions: 3 },
-      { id: 13, name: 'Tom Wilson', portions: 4 },
-      { id: 14, name: 'Amy Chen', portions: 2 },
-      { id: 15, name: 'Steve Miller', portions: 6 },
-      { id: 16, name: 'Linda Davis', portions: 3 },
+      { id: 13, name: 'Tom Wilson', portions: 2 },
+      { id: 14, name: 'Amy Chen', portions: 4 },
+      { id: 15, name: 'Steve Miller', portions: 3 },
+      { id: 16, name: 'Linda Davis', portions: 2 },
       { id: 17, name: 'Chris Taylor', portions: 4 },
-      { id: 18, name: 'Maria Garcia', portions: 2 },
-      { id: 19, name: 'Paul Brown', portions: 3 },
-      { id: 20, name: 'Susan Lee', portions: 3 },
+      { id: 18, name: 'Maria Garcia', portions: 3 },
+      { id: 19, name: 'Paul Brown', portions: 2 },
+      { id: 20, name: 'Susan Lee', portions: 4 },
+      { id: 21, name: 'Brandon Walker', portions: 4 },
     ],
   },
 ])
 
-// Computed properties for components
+// Computed properties
 const summaryStats = computed(() => [
-  { label: 'Total Staff', value: mealStore.totalStaffToday },
-  { label: 'Total Portions', value: mealStore.totalPortionsToday },
-])
-
-const actionButtons = computed(() => [
-  {
-    label: 'Export Report',
-    color: 'blue-grey-darken-2',
-    action: exportReport,
-    icon: 'mdi-file-export',
-    class: 'mr-3',
-  },
-  {
-    label: 'Refresh',
-    color: 'blue-grey-lighten-1',
-    action: refreshData,
-    icon: 'mdi-refresh',
-  },
-  {
-    label: 'Logout',
-    color: 'red-darken-1',
-    action: logout,
-    icon: 'mdi-logout',
-  },
+  { label: 'Total Staff', value: 36 },
+  { label: 'Total Portions', value: 103 },
 ])
 
 const filterActions = computed(() => [
   {
     label: 'Select All',
     action: selectAll,
-    color: 'blue-grey-darken-2',
+    color: 'blue-grey-darken-1',
+    variant: 'elevated',
+    block: true,
   },
   {
     label: 'Deselect All',
     action: deselectAll,
-    color: 'blue-grey-lighten-1',
+    color: 'grey',
+    variant: 'outlined',
+    block: true,
   },
 ])
 
@@ -206,8 +229,15 @@ const filteredDepartments = computed(() => {
 })
 
 // Methods
-const exportReport = () => {
-  console.log('Exporting report...')
+
+const exportPDF = async () => {
+  console.log('Exporting PDF report...')
+  await mealStore.exportReportPDF(selectedDate.value, selectedDepartments.value)
+}
+
+const exportExcel = async () => {
+  console.log('Exporting Excel report...')
+  await mealStore.exportReportExcel(selectedDate.value, selectedDepartments.value)
 }
 
 const refreshData = async () => {
@@ -217,7 +247,6 @@ const refreshData = async () => {
 
 const updateData = async () => {
   console.log('Updating data for date:', selectedDate.value)
-  // You can implement date-specific filtering here
   await mealStore.initialize()
 }
 
@@ -229,12 +258,6 @@ const deselectAll = () => {
   selectedDepartments.value = []
 }
 
-const logout = async () => {
-  await authStore.logout()
-  router.push('/')
-}
-
-// Initialize with all departments selected and load data
 onMounted(async () => {
   selectedDepartments.value = [...allDepartments]
   await mealStore.initialize()
@@ -244,5 +267,6 @@ onMounted(async () => {
 <style scoped>
 .admin-dashboard {
   min-height: 100vh;
+  background-color: #fafafa;
 }
 </style>

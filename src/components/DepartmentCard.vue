@@ -1,26 +1,33 @@
 <template>
-  <v-card :elevation="elevation" rounded="lg" class="mb-4">
+  <v-card :elevation="elevation" rounded="lg" color="white" class="mb-3">
     <!-- Department Header -->
-    <v-card-title class="bg-blue-grey-darken-2 text-white pa-4">
-      <div class="d-flex justify-space-between align-center w-100">
-        <span class="text-h6 font-weight-medium">{{ department.name }}</span>
-        <span class="text-body-1">Total: {{ department.totalPortions }} portions</span>
-      </div>
+    <v-card-title
+      class="bg-blue-grey-darken-3 text-white pa-3 d-flex justify-space-between align-center"
+    >
+      <span class="text-body-1 font-weight-medium">{{ department.name }}</span>
+      <span class="text-caption">Total: {{ department.totalPortions }} portions</span>
     </v-card-title>
 
     <!-- Staff List -->
     <v-card-text class="pa-0">
-      <v-list density="compact">
-        <v-list-item v-for="staff in department.staff" :key="staff.id" class="px-4 py-3 border-b">
-          <v-list-item-title class="text-body-1 text-grey-darken-2">
+      <v-list density="compact" class="py-0">
+        <v-list-item
+          v-for="(staff, index) in department.staff"
+          :key="staff.id"
+          class="px-4 py-2"
+          :class="{ 'border-b': index < department.staff.length - 1 }"
+        >
+          <v-list-item-title class="text-body-2 text-grey-darken-2 font-weight-regular">
             {{ staff.name }}
           </v-list-item-title>
 
           <template v-slot:append>
             <v-chip
-              :color="getPortionColor(staff.portions)"
+              :color="getPortionChipColor(staff.portions)"
+              :text-color="getPortionTextColor(staff.portions)"
               size="small"
-              class="text-white font-weight-medium"
+              class="font-weight-medium"
+              variant="flat"
             >
               {{ staff.portions }}
             </v-chip>
@@ -50,23 +57,24 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  elevation: 2,
+  elevation: 0,
 })
 
-const getPortionColor = (portions: number): string => {
-  if (portions >= 4) return 'blue-grey-darken-3'
-  if (portions >= 3) return 'blue-grey-darken-2'
-  if (portions >= 2) return 'blue-grey-darken-1'
-  return 'blue-grey'
+const getPortionChipColor = (portions: number): string => {
+  if (portions >= 4) return 'grey-darken-2'
+  if (portions >= 3) return 'grey-darken-1'
+  if (portions >= 2) return 'grey'
+  return 'grey-lighten-1'
+}
+
+const getPortionTextColor = (portions: number): string => {
+  if (portions >= 2) return 'white'
+  return 'grey-darken-3'
 }
 </script>
 
 <style scoped>
 .border-b {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.border-b:last-child {
-  border-bottom: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 </style>

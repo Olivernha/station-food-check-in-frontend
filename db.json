@@ -23,7 +23,7 @@
         {
           "id": "dept_it_2025-08-15",
           "name": "IT",
-          "totalCount": 12
+          "totalCount": 15
         }
       ]
     }
@@ -73,6 +73,15 @@
       "entraAD": "johndoe",
       "count": 3,
       "timestamp": "2025-08-15T06:57:54.998Z"
+    },
+    {
+      "id": "1755242024701_mlukfcsda",
+      "department_id": "dept_it_2025-08-15",
+      "date": "2025-08-15T07:13:44.701Z",
+      "fullname": "John Doe",
+      "entraAD": "johndoe",
+      "count": 3,
+      "timestamp": "2025-08-15T07:13:44.701Z"
     }
   ]
 }
