@@ -30,7 +30,7 @@
           hide-details
           class="mb-1 text-body-2"
           :color="checkboxColor"
-          @update:model-value="$emit('update:selectedOptions', $event)"
+          @update:model-value="$emit('update:selectedOptions', $event || [])"
         />
       </div>
 
@@ -57,7 +57,7 @@
 interface Action {
   label: string
   action: () => void
-  variant?: string
+  variant?: 'flat' | 'text' | 'elevated' | 'tonal' | 'outlined' | 'plain'
   size?: string
   color?: string
   block?: boolean

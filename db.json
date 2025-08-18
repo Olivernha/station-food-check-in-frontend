@@ -34,7 +34,7 @@
         {
           "id": "dept_it_2025-08-18",
           "name": "IT",
-          "totalCount": 6
+          "totalCount": 8
         }
       ]
     }
@@ -102,6 +102,15 @@
       "entraAD": "johndoe",
       "count": 6,
       "timestamp": "2025-08-18T06:13:55.286Z"
+    },
+    {
+      "id": "1755501020421_jd7rvavln",
+      "department_id": "dept_it_2025-08-18",
+      "date": "2025-08-18T07:10:20.421Z",
+      "fullname": "John Doe",
+      "entraAD": "johndoe",
+      "count": 2,
+      "timestamp": "2025-08-18T07:10:20.421Z"
     }
   ]
 }

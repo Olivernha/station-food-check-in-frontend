@@ -89,8 +89,24 @@
     </v-banner-text>
 
     <template v-slot:actions>
-      <v-btn variant="text" color="white" @click="showIOSInstallInstructions"> How? </v-btn>
-      <v-btn variant="text" color="white" @click="dismissIOSBanner"> Dismiss </v-btn>
+      <v-btn
+        variant="outlined"
+        color="white"
+        size="small"
+        class="banner-btn"
+        @click="showIOSInstallInstructions"
+      >
+        How?
+      </v-btn>
+      <v-btn
+        variant="text"
+        color="white"
+        size="small"
+        class="banner-btn ml-2"
+        @click="dismissIOSBanner"
+      >
+        Dismiss
+      </v-btn>
     </template>
   </v-banner>
 </template>
@@ -245,5 +261,25 @@ onMounted(() => {
   left: 0;
   right: 0;
   z-index: 1000;
+}
+
+.banner-btn {
+  color: white !important;
+  border-color: white !important;
+  min-width: 60px !important;
+}
+
+.banner-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Ensure banner text is visible */
+:deep(.v-banner-text) {
+  color: white !important;
+}
+
+/* Ensure banner actions are visible */
+:deep(.v-banner__actions) {
+  align-items: center;
 }
 </style>
