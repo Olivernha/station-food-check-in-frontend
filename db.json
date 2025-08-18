@@ -26,6 +26,17 @@
           "totalCount": 15
         }
       ]
+    },
+    {
+      "id": "2025-08-18",
+      "date": "2025-08-18T00:00:00.000Z",
+      "departments": [
+        {
+          "id": "dept_it_2025-08-18",
+          "name": "IT",
+          "totalCount": 6
+        }
+      ]
     }
   ],
   "collectionrecords": [
@@ -82,6 +93,15 @@
       "entraAD": "johndoe",
       "count": 3,
       "timestamp": "2025-08-15T07:13:44.701Z"
+    },
+    {
+      "id": "1755497635286_o04uuwdf4",
+      "department_id": "dept_it_2025-08-18",
+      "date": "2025-08-18T06:13:55.286Z",
+      "fullname": "John Doe",
+      "entraAD": "johndoe",
+      "count": 6,
+      "timestamp": "2025-08-18T06:13:55.286Z"
     }
   ]
 }
