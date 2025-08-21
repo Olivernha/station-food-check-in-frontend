@@ -17,7 +17,9 @@
     "json-server": "json-server --watch db.json --port 3000"
   },
   "dependencies": {
+    "@azure/msal-browser": "^4.21.0",
     "@mdi/font": "^7.4.47",
+    "axios": "^1.11.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "pinia": "^3.0.3",

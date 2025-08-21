@@ -37,6 +37,22 @@
           "totalCount": 8
         }
       ]
+    },
+    {
+      "id": "2025-08-21",
+      "date": "2025-08-21T00:00:00.000Z",
+      "departments": [
+        {
+          "id": "dept_operations_2025-08-21",
+          "name": "Operations",
+          "totalCount": 10
+        },
+        {
+          "id": "dept_information_technology_2025-08-21",
+          "name": "Information Technology",
+          "totalCount": 7
+        }
+      ]
     }
   ],
   "collectionrecords": [
@@ -111,6 +127,42 @@
       "entraAD": "johndoe",
       "count": 2,
       "timestamp": "2025-08-18T07:10:20.421Z"
+    },
+    {
+      "id": "1755756070517_m6lk7624m",
+      "department_id": "dept_operations_2025-08-21",
+      "date": "2025-08-21T06:01:10.517Z",
+      "fullname": "Unknown User",
+      "entraAD": "unknown",
+      "count": 3,
+      "timestamp": "2025-08-21T06:01:10.517Z"
+    },
+    {
+      "id": "1755756098951_fxs74g7ng",
+      "department_id": "dept_operations_2025-08-21",
+      "date": "2025-08-21T06:01:38.951Z",
+      "fullname": "Unknown User",
+      "entraAD": "unknown",
+      "count": 7,
+      "timestamp": "2025-08-21T06:01:38.951Z"
+    },
+    {
+      "id": "1755764763958_08yuwyj81",
+      "department_id": "dept_information_technology_2025-08-21",
+      "date": "2025-08-21T08:26:03.958Z",
+      "fullname": "Nay Htet Aung",
+      "entraAD": "unknown",
+      "count": 2,
+      "timestamp": "2025-08-21T08:26:03.958Z"
+    },
+    {
+      "id": "1755765289425_25dxxae35",
+      "department_id": "dept_information_technology_2025-08-21",
+      "date": "2025-08-21T08:34:49.425Z",
+      "fullname": "Nay Htet Aung",
+      "entraAD": "unknown",
+      "count": 5,
+      "timestamp": "2025-08-21T08:34:49.425Z"
     }
   ]
 }

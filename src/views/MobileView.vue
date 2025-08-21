@@ -75,7 +75,7 @@ const isLoading = ref(false)
 const transitionName = ref('slide-right')
 
 // Get user info from auth store
-const userName = computed(() => authStore.user?.fullname || 'User')
+const userName = computed(() => authStore.user?.displayName || 'User')
 
 // Computed properties
 const currentDate = computed(() => {
@@ -151,7 +151,7 @@ const completeCollection = async () => {
   try {
     // Save meal collection data using the meal store
     const success = await mealStore.saveMealCollection(
-      authStore.user?.fullname || 'Unknown User',
+      authStore.user?.displayName || 'Unknown User',
       authStore.user?.entraAD || 'unknown',
       authStore.user?.department || 'Operations',
       totalPortions.value,

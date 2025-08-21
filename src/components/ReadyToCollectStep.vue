@@ -5,7 +5,7 @@
         mdi-account-check
       </v-icon>
 
-      <h1 class="text-h3 font-weight-bold mb-3 fade-in-up greeting-text">Hello, {{ userName }}</h1>
+      <h1 class="text-h4 font-weight-bold mb-3 fade-in-up greeting-text">Hello, {{ userName }}</h1>
 
       <div class="subtitle-container mb-8 fade-in-up subtitle-text">
         <p class="text-h6 text-grey mb-2">Ready to collect your meal?</p>

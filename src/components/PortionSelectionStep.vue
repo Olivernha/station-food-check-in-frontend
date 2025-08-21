@@ -1,13 +1,8 @@
 <template>
   <v-container class="fill-height d-flex align-center justify-center">
     <div class="text-center w-100 pa-6 step-container">
-      <v-icon
-        size="80"
-        color="primary"
-        class="mb-6 bounce-in counter-icon"
-      >
-        mdi-counter
-      </v-icon>
+
+
 
       <h1 class="text-h3 font-weight-bold mb-2 fade-in-up">
         Select Portions
