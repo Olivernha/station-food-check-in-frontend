@@ -1,3 +1,4 @@
+<!-- Updated ReadyToCollectStep Component -->
 <template>
   <v-container class="fill-height d-flex align-center justify-center">
     <div class="text-center w-100 pa-6 step-container">
@@ -10,7 +11,7 @@
       <div class="subtitle-container mb-8 fade-in-up subtitle-text">
         <p class="text-h6 text-grey mb-2">Ready to collect your meal?</p>
 
-        <!-- Today's Collection Summary - Elegant chip integration -->
+        <!-- Today's Collection Summary -->
         <div v-if="todaysCollections > 0" class="collection-status">
           <v-chip
             color="success"
@@ -19,9 +20,7 @@
             prepend-icon="mdi-check-circle"
             class="collection-chip"
           >
-            You have collected {{ todaysCollections }} portion{{
-              todaysCollections > 1 ? 's' : ''
-            }}
+            You have collected {{ todaysCollections }} portion{{ todaysCollections > 1 ? 's' : '' }}
             today
           </v-chip>
         </div>
@@ -45,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useMealStore } from '../stores/mealStore'
 import { useAuthStore } from '../stores/authStore'
 
@@ -62,24 +61,45 @@ defineEmits<{
 const mealStore = useMealStore()
 const authStore = useAuthStore()
 
-// Computed property to get today's collections for the current user
-const todaysCollections = computed(() => {
-  const today = mealStore.getTodayDateString()
-  const userFullname = authStore.user?.fullname || ''
+const todaysCollections = ref(0)
 
-  return mealStore.mealCollections
-    .filter(
-      (collection) => collection.date.startsWith(today) && collection.fullname === userFullname,
-    )
-    .reduce((total, collection) => total + collection.count, 0)
-})
-
-// Initialize meal store data when component mounts
-onMounted(async () => {
-  if (mealStore.mealCollections.length === 0) {
-    await mealStore.fetchMealCollections()
+// Fetch user's daily meal count
+const fetchUserMealCount = async () => {
+  if (!authStore.user?.entraId || !authStore.user?.department) {
+    console.log('Missing user data:', {
+      entraId: authStore.user?.entraId,
+      department: authStore.user?.department,
+      entity: authStore.user?.entity,
+    })
+    return
   }
-})
+
+  try {
+    console.log('Fetching meal count for user:', authStore.user.entraId)
+    const count = await mealStore.getTodayMealCount(
+      authStore.user.entraId,
+      authStore.user.department,
+      authStore.user.entity || 'entity',
+    )
+    console.log('Received meal count:', count)
+    todaysCollections.value = count
+  } catch (error) {
+    console.error('Error fetching user meal count:', error)
+  }
+}
+
+
+// Watch for auth user changes
+watch(
+  () => authStore.user,
+  async (newUser) => {
+    console.log('Auth user changed:', newUser)
+    if (newUser) {
+      await fetchUserMealCount()
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped>
@@ -143,7 +163,8 @@ onMounted(async () => {
   position: relative;
 }
 
-.collection-status {
+.collection-status,
+.mt-4 {
   margin-top: 8px;
   animation: slideInFromBottom 0.6s ease-out;
   animation-delay: 0.8s;

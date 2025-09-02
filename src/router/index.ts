@@ -1,7 +1,7 @@
 // src/router/index.ts
-import { createRouter, createWebHistory } from 'vue-router';
-import type { RouteRecordRaw } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
+import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -9,9 +9,9 @@ const routes: RouteRecordRaw[] = [
     name: 'Home',
     component: () => import('@/views/MobileView.vue'),
     beforeEnter: async (_, __, next) => {
-      const authStore = useAuthStore();
-      const ok = await authStore.bootstrapAuth();
-      next(ok ? true : '/login');
+      const authStore = useAuthStore()
+      const ok = await authStore.bootstrapAuth()
+      next(ok ? true : '/login')
     },
   },
   {
@@ -23,14 +23,14 @@ const routes: RouteRecordRaw[] = [
     path: '/admin',
     name: 'Admin',
     component: () => import('@/views/AdminView.vue'),
-    beforeEnter: async (_, __, next) => {
-      const authStore = useAuthStore();
-      const ok = await authStore.bootstrapAuth();
-      if (!ok) return next('/login');
+    // beforeEnter: async (_, __, next) => {
+    //   const authStore = useAuthStore();
+    //   const ok = await authStore.bootstrapAuth();
+    //   if (!ok) return next('/login');
 
-      const isAdmin = authStore.user?.jobTitle?.toLowerCase().includes('admin');
-      next(isAdmin ? true : '/unauthorized');
-    },
+    //   const isAdmin = authStore.user?.jobTitle?.toLowerCase().includes('admin');
+    //   next(isAdmin ? true : '/unauthorized');
+    // },
   },
   {
     path: '/unauthorized',
@@ -41,9 +41,9 @@ const routes: RouteRecordRaw[] = [
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },
-];
+]
 
 export default createRouter({
   history: createWebHistory(),
   routes,
-});
+})

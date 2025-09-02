@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import logo from '@/assets/img/tuaslogo.png'
 import AppHeader from '../components/AppHeader.vue'
 import ReadyToCollectStep from '../components/ReadyToCollectStep.vue'
@@ -148,13 +148,15 @@ const submitCollection = async () => {
 const completeCollection = async () => {
   isLoading.value = true
   transitionName.value = 'slide-right'
+  console.log('authStore' + authStore.user)
   try {
     // Save meal collection data using the meal store
     const success = await mealStore.saveMealCollection(
       authStore.user?.displayName || 'Unknown User',
-      authStore.user?.entraAD || 'unknown',
+      authStore.user?.entraId || 'unknown',
       authStore.user?.department || 'Operations',
       totalPortions.value,
+      'entity',
     )
 
     if (!success) {
@@ -176,9 +178,6 @@ const goHome = () => {
 }
 
 // Initialize meal store data when component mounts
-onMounted(async () => {
-  await mealStore.initialize()
-})
 </script>
 
 <style scoped>

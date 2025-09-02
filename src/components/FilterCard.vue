@@ -57,7 +57,7 @@
 interface Action {
   label: string
   action: () => void
-  variant?: 'flat' | 'text' | 'elevated' | 'tonal' | 'outlined' | 'plain'
+  variant?: 'flat' | 'text' | 'elevated' | 'tonal' | 'outlined' | 'plain' | string
   size?: string
   color?: string
   block?: boolean

@@ -18,7 +18,22 @@
 
     <v-main class="bg-grey-lighten-5">
       <v-container fluid class="pa-4">
-        <v-row>
+        <!-- Loading State -->
+        <div v-if="isLoading" class="text-center py-8">
+          <v-progress-circular
+            indeterminate
+            color="blue-grey-darken-1"
+            size="64"
+          ></v-progress-circular>
+          <p class="text-h6 mt-4">Loading report data...</p>
+        </div>
+
+        <!-- Error State -->
+        <v-alert v-if="error" type="error" class="mb-4" closable @click:close="clearError">
+          {{ error }}
+        </v-alert>
+
+        <v-row v-if="!isLoading">
           <!-- Main Content Area -->
           <v-col cols="12" md="8" lg="9">
             <!-- Daily Summary Card -->
@@ -43,12 +58,12 @@
                       append-icon="mdi-chevron-down"
                       variant="outlined"
                       v-bind="props"
+                      :disabled="isLoading"
                     >
                       Export Report
                     </v-btn>
                   </template>
                   <v-list>
-
                     <v-list-item @click="exportPDF">
                       <template v-slot:prepend>
                         <v-icon color="red-darken-1">mdi-file-pdf-box</v-icon>
@@ -68,10 +83,26 @@
                   color="blue-grey-lighten-1"
                   prepend-icon="mdi-refresh"
                   variant="outlined"
+                  :loading="isLoading"
                   @click="refreshData"
                 >
                   Refresh
                 </v-btn>
+              </v-card-text>
+            </v-card>
+
+            <!-- No Data State -->
+            <v-card
+              v-if="filteredDepartments.length === 0 && !isLoading"
+              elevation="1"
+              class="text-center py-8"
+            >
+              <v-card-text>
+                <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-inbox-outline</v-icon>
+                <p class="text-h6 text-grey-darken-1">No data available for selected date</p>
+                <p class="text-body-2 text-grey">
+                  Try selecting a different date or refreshing the data.
+                </p>
               </v-card-text>
             </v-card>
 
@@ -103,7 +134,7 @@
               title="Department Filter"
               type="checkbox"
               icon="mdi-filter-variant"
-              :options="allDepartments"
+              :options="availableDepartments"
               v-model:selected-options="selectedDepartments"
               :actions="filterActions"
               elevation="1"
@@ -116,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useMealStore } from '../stores/mealStore'
 
 import AppHeader from '@/components/AppHeader.vue'
@@ -129,80 +160,112 @@ const mealStore = useMealStore()
 interface Staff {
   id: number
   name: string
+  entraadname: string
   portions: number
 }
 
 interface Department {
   name: string
+  deptname: string
+  entity: string
   staff: Staff[]
   totalPortions: number
+  staff_count: number
+  record_count: number
+}
+
+interface ReportData {
+  date: string
+  total_record_count: number
+  total_unique_staff: number
+  departments: any[]
 }
 
 // Reactive data
-const currentDate = ref('July 09, 2025')
-const selectedDate = ref('2025-07-09')
+const reportData = ref<ReportData | null>(null)
+const isLoading = ref(false)
+const error = ref<string | null>(null)
+const selectedDate = ref(new Date().toISOString().split('T')[0]) // Today's date in YYYY-MM-DD format
 const selectedDepartments = ref<string[]>([])
 
-// All departments from the image
-const allDepartments = [
-  'Chemical & Environment',
-  'Control & Instrumentation',
-  'Electrical Maintenance',
-  'Project & Engineering',
-  'Health Safety & Environment',
-  'Human Capital Management/Corporate Communication',
-  'Information Technology',
-  'Materials Management',
-  'Mechanical Maintenance',
-  'O&G/Fuel Handling',
-  'O&G/Operation',
-  'Purchasing',
-  'Security',
-  'Support Services',
-]
-
-// Sample data matching the image exactly
-const departments = ref<Department[]>([
-  {
-    name: 'Chemical & Environment',
-    totalPortions: 28,
-    staff: [
-      { id: 1, name: 'John Smith', portions: 3 },
-      { id: 2, name: 'Sarah Johnson', portions: 2 },
-      { id: 3, name: 'Michael Chen', portions: 4 },
-      { id: 4, name: 'Lisa Wong', portions: 1 },
-      { id: 5, name: 'David Miller', portions: 3 },
-      { id: 6, name: 'Emma Davis', portions: 2 },
-      { id: 7, name: 'Robert Taylor', portions: 4 },
-      { id: 8, name: 'Amanda Wilson', portions: 3 },
-      { id: 9, name: 'Kevin Brown', portions: 2 },
-      { id: 10, name: 'Jennifer Lee', portions: 4 },
-    ],
-  },
-  {
-    name: 'Electrical Maintenance',
-    totalPortions: 35,
-    staff: [
-      { id: 11, name: 'James Rodriguez', portions: 4 },
-      { id: 12, name: 'Rachel Green', portions: 3 },
-      { id: 13, name: 'Tom Wilson', portions: 2 },
-      { id: 14, name: 'Amy Chen', portions: 4 },
-      { id: 15, name: 'Steve Miller', portions: 3 },
-      { id: 16, name: 'Linda Davis', portions: 2 },
-      { id: 17, name: 'Chris Taylor', portions: 4 },
-      { id: 18, name: 'Maria Garcia', portions: 3 },
-      { id: 19, name: 'Paul Brown', portions: 2 },
-      { id: 20, name: 'Susan Lee', portions: 4 },
-      { id: 21, name: 'Brandon Walker', portions: 4 },
-    ],
-  },
-])
-
 // Computed properties
+const currentDate = computed(() => {
+  const date = new Date(selectedDate.value)
+  return date.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+})
+
 const summaryStats = computed(() => [
-  { label: 'Total Staff', value: 36 },
-  { label: 'Total Portions', value: 103 },
+  {
+    label: 'Total Staff',
+    value: reportData.value?.total_unique_staff || 0,
+  },
+  {
+    label: 'Total Portions',
+    value: reportData.value?.total_record_count || 0,
+  },
 ])
+
+// Transform backend data to frontend format
+const transformedDepartments = computed((): Department[] => {
+  if (!reportData.value?.departments) return []
+
+  return reportData.value.departments
+    .map((dept) => {
+      // Transform staff records
+      const staff: Staff[] = []
+      let staffIdCounter = 1
+
+      if (dept.records && Array.isArray(dept.records)) {
+        dept.records.forEach((employeeRecord: any) => {
+          if (employeeRecord.records && employeeRecord.records.length > 0) {
+            // Calculate total portions for this employee on this date
+            const totalPortions = employeeRecord.records.reduce(
+              (sum: number, record: any) => sum + (record.count || 0),
+              0,
+            )
+
+            if (totalPortions > 0) {
+              staff.push({
+                id: staffIdCounter++,
+                name: employeeRecord.fullname || 'Unknown',
+                entraadname: employeeRecord.entraadname || 'unknown',
+                portions: totalPortions,
+              })
+            }
+          }
+        })
+      }
+
+      return {
+        name: dept.deptname || 'Unknown Department',
+        deptname: dept.deptname,
+        entity: dept.entity,
+        staff,
+        totalPortions: staff.reduce((sum, s) => sum + s.portions, 0),
+        staff_count: dept.staff_count || staff.length,
+        record_count: dept.record_count || 0,
+      }
+    })
+    .filter((dept) => dept.staff.length > 0)
+})
+
+const availableDepartments = computed(() => {
+  return transformedDepartments.value.map((dept) => dept.name)
+})
+
+const filteredDepartments = computed(() => {
+  if (selectedDepartments.value.length === 0) {
+    return transformedDepartments.value
+  }
+  return transformedDepartments.value.filter((dept) =>
+    selectedDepartments.value.includes(dept.name),
+  )
+})
 
 const filterActions = computed(() => [
   {
@@ -221,46 +284,89 @@ const filterActions = computed(() => [
   },
 ])
 
-const filteredDepartments = computed(() => {
-  if (selectedDepartments.value.length === 0) {
-    return departments.value
-  }
-  return departments.value.filter((dept) => selectedDepartments.value.includes(dept.name))
-})
-
 // Methods
+const fetchReportData = async () => {
+  isLoading.value = true
+  error.value = null
+
+  try {
+    console.log('Fetching report data for date:', selectedDate.value)
+    const data = await mealStore.getReportDataByDate(selectedDate.value)
+    console.log(data)
+
+    if (data) {
+      reportData.value = data
+    } else {
+      reportData.value = {
+        date: selectedDate.value,
+        total_record_count: 0,
+        total_unique_staff: 0,
+        departments: [],
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching report data:', err)
+    error.value = err instanceof Error ? err.message : 'Failed to fetch report data'
+    reportData.value = null
+  } finally {
+    isLoading.value = false
+  }
+}
 
 const exportPDF = async () => {
-  console.log('Exporting PDF report...')
-  await mealStore.exportReportPDF(selectedDate.value, selectedDepartments.value)
+  try {
+    console.log('Exporting PDF report...')
+    // You can implement PDF export here or call mealStore method
+    await mealStore.exportReportPDF(selectedDate.value, selectedDepartments.value)
+  } catch (err) {
+    console.error('Error exporting PDF:', err)
+    error.value = 'Failed to export PDF'
+  }
 }
 
 const exportExcel = async () => {
-  console.log('Exporting Excel report...')
-  await mealStore.exportReportExcel(selectedDate.value, selectedDepartments.value)
+  try {
+    console.log('Exporting Excel report...')
+    // You can implement Excel export here or call mealStore method
+    await mealStore.exportReportExcel(selectedDate.value, selectedDepartments.value)
+  } catch (err) {
+    console.error('Error exporting Excel:', err)
+    error.value = 'Failed to export Excel'
+  }
 }
 
 const refreshData = async () => {
   console.log('Refreshing data...')
-  await mealStore.initialize()
+  await fetchReportData()
 }
 
 const updateData = async () => {
   console.log('Updating data for date:', selectedDate.value)
-  await mealStore.initialize()
+  await fetchReportData()
 }
 
 const selectAll = () => {
-  selectedDepartments.value = [...allDepartments]
+  selectedDepartments.value = [...availableDepartments.value]
 }
 
 const deselectAll = () => {
   selectedDepartments.value = []
 }
 
+const clearError = () => {
+  error.value = null
+}
+
+// Watch for date changes
+watch(selectedDate, () => {
+  updateData()
+})
+
+// Initialize on mount
 onMounted(async () => {
-  selectedDepartments.value = [...allDepartments]
-  await mealStore.initialize()
+  await fetchReportData()
+  // Auto-select all departments after data is loaded
+  selectedDepartments.value = [...availableDepartments.value]
 })
 </script>
 
