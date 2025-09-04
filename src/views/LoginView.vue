@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useAuthStore } from '@/stores/authStore';
-import { msalService } from '@/services/msalService';
-import logo from '@/assets/img/tuaslogo.png';
-import AppHeader from '@/components/AppHeader.vue';
+import { ref, computed, onMounted } from 'vue'
+import logo from '@/assets/img/tuaslogo.png'
+import AppHeader from '@/components/AppHeader.vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-const authStore = useAuthStore();
-const auth = msalService();
-
-const isLoading = ref(false);
-const error = ref('');
+const authStore = useAuthStore()
+const router = useRouter()
+const isLoading = ref(false)
+const error = ref('')
 
 const currentDate = computed(() =>
   new Date().toLocaleDateString('en-GB', {
@@ -17,28 +16,28 @@ const currentDate = computed(() =>
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  })
-);
+  }),
+)
 
 const signInWithMicrosoft = async () => {
-  if (isLoading.value) return;
-  isLoading.value = true;
-  error.value = '';
+  if (isLoading.value) return
+  isLoading.value = true
+  error.value = ''
   try {
-    await auth.login();
+    await authStore.login()
+    router.push({ name: 'Home' })
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Sign in failed.';
-    isLoading.value = false;
+    error.value = err instanceof Error ? err.message : 'Sign in failed.'
+    isLoading.value = false
   }
-};
+}
 
-onMounted(async () => {
-  const ok = await authStore.bootstrapAuth();
-  if (ok) {
-    // already signed in, redirect to home
-    window.location.href = '/';
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    // User is already authenticated, redirect to main app view
+    router.push({ name: 'Home' })
   }
-});
+})
 </script>
 
 <template>
@@ -61,7 +60,13 @@ onMounted(async () => {
           <h1 class="text-h2 font-weight-bold mb-6">Welcome</h1>
           <p class="text-h5 text-grey mb-12">Please sign in with Microsoft to continue</p>
 
-          <v-alert v-if="error" type="error" variant="tonal" class="mb-6 mx-auto" style="max-width: 400px">
+          <v-alert
+            v-if="error"
+            type="error"
+            variant="tonal"
+            class="mb-6 mx-auto"
+            style="max-width: 400px"
+          >
             {{ error }}
           </v-alert>
 
@@ -77,7 +82,9 @@ onMounted(async () => {
             @click="signInWithMicrosoft"
           >
             <v-icon start>mdi-microsoft</v-icon>
-            <span class="text-h6">{{ isLoading ? 'Signing In...' : 'Sign In with Microsoft' }}</span>
+            <span class="text-h6">{{
+              isLoading ? 'Signing In...' : 'Sign In with Microsoft'
+            }}</span>
           </v-btn>
         </div>
       </v-container>

@@ -1,18 +1,14 @@
 // src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuthStore } from '../stores/auth'
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Home',
     component: () => import('@/views/MobileView.vue'),
-    beforeEnter: async (_, __, next) => {
-      const authStore = useAuthStore()
-      const ok = await authStore.bootstrapAuth()
-      next(ok ? true : '/login')
-    },
+    meta: { requiresAuth: true },
   },
   {
     path: '/login',
@@ -23,14 +19,6 @@ const routes: RouteRecordRaw[] = [
     path: '/admin',
     name: 'Admin',
     component: () => import('@/views/AdminView.vue'),
-    // beforeEnter: async (_, __, next) => {
-    //   const authStore = useAuthStore();
-    //   const ok = await authStore.bootstrapAuth();
-    //   if (!ok) return next('/login');
-
-    //   const isAdmin = authStore.user?.jobTitle?.toLowerCase().includes('admin');
-    //   next(isAdmin ? true : '/unauthorized');
-    // },
   },
   {
     path: '/unauthorized',
@@ -43,7 +31,18 @@ const routes: RouteRecordRaw[] = [
   },
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next('/login')
+  } else {
+    next()
+  }
+})
+
+export default router

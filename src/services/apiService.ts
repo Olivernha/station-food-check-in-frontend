@@ -18,9 +18,8 @@ export function apiService() {
   // Helper to make authorized requests
   const authorizedRequest = async <T>(
     url: string,
-    scopes: string[] = ['User.Read'],
   ): Promise<AxiosResponse<T>> => {
-    const accessToken = await authService.getToken(scopes)
+    const accessToken = import.meta.env.ACCESS_TOKEN
     return axios.get<T>(url, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
@@ -30,8 +29,7 @@ export function apiService() {
   const getUserProfile = async (): Promise<UserProfile> => {
     try {
       const response = await authorizedRequest<UserProfile>(
-        'https://graph.microsoft.com/v1.0/me?$select=displayName,mail,userPrincipalName,entity,jobTitle,department,id,givenName,surname,officeLocation,surname,preferredLanguage',
-        ['User.Read'],
+        'https://graph.microsoft.com/v1.0/me?$select=displayName,companyName,mail,userPrincipalName,entity,jobTitle,department,id,givenName,surname,officeLocation,surname,preferredLanguage',
       )
       console.log('User profile fetched:', response.data)
       return response.data

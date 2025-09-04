@@ -46,7 +46,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useMealStore } from '../stores/mealStore'
-import { useAuthStore } from '../stores/authStore'
+import { useAuthStore } from '../stores/auth'
 
 interface Props {
   userName: string
@@ -65,7 +65,7 @@ const todaysCollections = ref(0)
 
 // Fetch user's daily meal count
 const fetchUserMealCount = async () => {
-  if (!authStore.user?.entraId || !authStore.user?.department) {
+  if (!authStore.user?.entraAd || !authStore.user?.department || !authStore.user?.entity) {
     console.log('Missing user data:', {
       entraId: authStore.user?.entraId,
       department: authStore.user?.department,
@@ -75,11 +75,11 @@ const fetchUserMealCount = async () => {
   }
 
   try {
-    console.log('Fetching meal count for user:', authStore.user.entraId)
+    console.log('Fetching meal count for user:', authStore.user.entraAd)
     const count = await mealStore.getTodayMealCount(
-      authStore.user.entraId,
+      authStore.user.entraAd,
       authStore.user.department,
-      authStore.user.entity || 'entity',
+      authStore.user.entity,
     )
     console.log('Received meal count:', count)
     todaysCollections.value = count
@@ -87,7 +87,6 @@ const fetchUserMealCount = async () => {
     console.error('Error fetching user meal count:', error)
   }
 }
-
 
 // Watch for auth user changes
 watch(

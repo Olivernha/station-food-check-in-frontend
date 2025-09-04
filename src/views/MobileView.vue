@@ -35,7 +35,7 @@
         <VoucherDisplayStep
           v-else-if="currentStep === 4"
           key="voucher"
-          :total-portions="totalPortions"
+          :total-portions="portionsToCollect"
           :user-details="userDetails"
           :is-loading="isLoading"
           @complete="completeCollection"
@@ -44,7 +44,7 @@
         <CompletionStep
           v-else-if="currentStep === 5"
           key="complete"
-          :total-portions="totalPortions"
+          :total-portions="portionsToCollect"
           :detailed-date-time="detailedDateTime"
           @go-home="goHome"
         />
@@ -61,7 +61,7 @@ import ReadyToCollectStep from '../components/ReadyToCollectStep.vue'
 import PortionSelectionStep from '../components/PortionSelectionStep.vue'
 import VoucherDisplayStep from '../components/VoucherDisplayStep.vue'
 import CompletionStep from '../components/CompletionStep.vue'
-import { useAuthStore } from '../stores/authStore'
+import { useAuthStore } from '../stores/auth'
 import { useMealStore } from '../stores/mealStore'
 
 const authStore = useAuthStore()
@@ -70,7 +70,6 @@ const mealStore = useMealStore()
 // State management
 const currentStep = ref(2)
 const portionsToCollect = ref(1)
-const totalPortions = ref(0)
 const isLoading = ref(false)
 const transitionName = ref('slide-right')
 
@@ -138,7 +137,6 @@ const submitCollection = async () => {
   transitionName.value = 'slide-right'
   try {
     await new Promise((resolve) => setTimeout(resolve, 1200))
-    totalPortions.value += portionsToCollect.value
     currentStep.value = 4
   } finally {
     isLoading.value = false
@@ -153,15 +151,14 @@ const completeCollection = async () => {
     // Save meal collection data using the meal store
     const success = await mealStore.saveMealCollection(
       authStore.user?.displayName || 'Unknown User',
-      authStore.user?.entraId || 'unknown',
+      authStore.user?.entraAd || 'unknown',
       authStore.user?.department || 'Operations',
-      totalPortions.value,
-      'entity',
+      portionsToCollect.value,
+      authStore.user?.entity || 'unknown',
     )
 
     if (!success) {
       console.error('Failed to save meal collection')
-      // You might want to show an error message to the user here
     }
 
     await new Promise((resolve) => setTimeout(resolve, 800))

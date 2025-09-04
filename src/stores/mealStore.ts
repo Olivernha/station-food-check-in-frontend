@@ -25,7 +25,6 @@ export interface ReportData {
 }
 
 export const useMealStore = defineStore('meal', () => {
-  const mealCollections = ref<MealCollection[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -83,9 +82,8 @@ export const useMealStore = defineStore('meal', () => {
     }
 
     try {
-      const saved = await fetchAPI('/mobile/submit_meal_check_in', mealCollection)
-      mealCollections.value.push({ ...mealCollection, id: saved.id, timestamp: saved.timestamp })
-      return true
+      await fetchAPI('/mobile/submit_meal_check_in', mealCollection)
+
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to save meal collection'
       return false
@@ -149,7 +147,6 @@ export const useMealStore = defineStore('meal', () => {
   }
 
   return {
-    mealCollections,
     isLoading,
     error,
     getTodayMealCount,
