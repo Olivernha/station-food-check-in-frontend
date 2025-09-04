@@ -3,109 +3,185 @@
   <v-snackbar
     v-model="showInstallPrompt"
     :timeout="10000"
-    color="success"
+    color="deep-purple-darken-2"
     location="bottom"
     multi-line
+    elevation="8"
+    rounded="lg"
   >
     <div class="d-flex align-center">
-      <v-icon class="mr-2">mdi-cellphone-arrow-down</v-icon>
-      <span>Install this app for a better experience!</span>
+      <v-icon class="mr-3" color="amber-lighten-2" size="28">mdi-download-circle</v-icon>
+      <div>
+        <div class="font-weight-bold text-white">Install MealCheck</div>
+        <div class="text-grey-lighten-3 text-caption">Get instant access with offline support</div>
+      </div>
     </div>
 
     <template v-slot:actions>
-      <v-btn color="white" variant="text" @click="installApp"> Install </v-btn>
-      <v-btn color="white" variant="text" @click="dismissInstall"> Not now </v-btn>
+      <v-btn
+        variant="elevated"
+        color="amber-darken-1"
+        class="text-deep-purple-darken-2 font-weight-bold"
+        rounded="lg"
+        @click="installApp"
+      >
+        Install Now
+      </v-btn>
+      <v-btn variant="text" color="grey-lighten-2" @click="dismissInstall"> Later </v-btn>
     </template>
   </v-snackbar>
 
   <!-- iOS Install Instructions Dialog -->
-  <v-dialog v-model="showIOSInstructions" max-width="400">
-    <v-card>
-      <v-card-title class="d-flex align-center">
-        <v-icon class="mr-2" color="primary">mdi-apple</v-icon>
-        Install App
+  <v-dialog v-model="showIOSInstructions" max-width="420" persistent>
+    <v-card class="pa-2" rounded="xl" elevation="12">
+      <v-card-title class="d-flex align-center pa-6 pb-4">
+        <v-avatar size="40" color="gradient-primary" class="mr-4">
+          <v-icon color="white" size="24">mdi-apple</v-icon>
+        </v-avatar>
+        <div>
+          <div class="text-h6 font-weight-bold text-deep-purple-darken-2">Install MealCheck</div>
+          <div class="text-caption text-grey-darken-1">Add to your home screen</div>
+        </div>
       </v-card-title>
 
-      <v-card-text>
-        <div class="text-body-1 mb-4">To install this app on your iPhone:</div>
+      <v-card-text class="px-6 pb-4">
+        <v-alert
+          color="teal-lighten-5"
+          border="start"
+          border-color="teal"
+          class="mb-4"
+          rounded="lg"
+        >
+          <div class="text-body-2 text-teal-darken-2">
+            <v-icon class="mr-2" color="teal" size="20">mdi-information</v-icon>
+            Follow these steps to install the app on your iPhone
+          </div>
+        </v-alert>
 
         <div class="install-steps">
-          <div class="step mb-3">
-            <div class="d-flex align-center mb-2">
-              <v-avatar size="24" color="primary" class="mr-3">
-                <span class="text-white text-caption">1</span>
+          <div class="step mb-4">
+            <div class="d-flex align-center mb-3">
+              <v-avatar size="32" color="gradient-step" class="mr-4 step-number">
+                <span class="text-white font-weight-bold">1</span>
               </v-avatar>
-              <span class="font-weight-medium">Tap the Share button</span>
+              <div class="flex-grow-1">
+                <div class="font-weight-bold text-deep-purple-darken-2">Tap the Share button</div>
+                <div class="text-caption text-grey-darken-1">Located at the bottom of Safari</div>
+              </div>
             </div>
-            <div class="d-flex align-center">
-              <v-icon class="mr-2" size="20">mdi-export-variant</v-icon>
-              <span class="text-body-2">
-                {{ isIOSSafari ? 'At the bottom of the screen' : 'In the browser menu' }}
-              </span>
+            <div class="d-flex align-center ml-12">
+              <v-chip
+                color="blue-lighten-4"
+                size="small"
+                class="mr-2"
+                prepend-icon="mdi-export-variant"
+              >
+                <span class="text-blue-darken-2">Share</span>
+              </v-chip>
             </div>
           </div>
 
-          <div class="step mb-3">
-            <div class="d-flex align-center mb-2">
-              <v-avatar size="24" color="primary" class="mr-3">
-                <span class="text-white text-caption">2</span>
+          <div class="step mb-4">
+            <div class="d-flex align-center mb-3">
+              <v-avatar size="32" color="gradient-step" class="mr-4 step-number">
+                <span class="text-white font-weight-bold">2</span>
               </v-avatar>
-              <span class="font-weight-medium">Select "Add to Home Screen"</span>
+              <div class="flex-grow-1">
+                <div class="font-weight-bold text-deep-purple-darken-2">
+                  Select "Add to Home Screen"
+                </div>
+                <div class="text-caption text-grey-darken-1">Scroll down in the share menu</div>
+              </div>
             </div>
-            <div class="d-flex align-center">
-              <v-icon class="mr-2" size="20">mdi-plus-box</v-icon>
-              <span class="text-body-2">Scroll down to find this option</span>
+            <div class="d-flex align-center ml-12">
+              <v-chip color="green-lighten-4" size="small" class="mr-2" prepend-icon="mdi-plus-box">
+                <span class="text-green-darken-2">Add to Home Screen</span>
+              </v-chip>
             </div>
           </div>
 
           <div class="step">
-            <div class="d-flex align-center mb-2">
-              <v-avatar size="24" color="primary" class="mr-3">
-                <span class="text-white text-caption">3</span>
+            <div class="d-flex align-center mb-3">
+              <v-avatar size="32" color="gradient-step" class="mr-4 step-number">
+                <span class="text-white font-weight-bold">3</span>
               </v-avatar>
-              <span class="font-weight-medium">Tap "Add"</span>
+              <div class="flex-grow-1">
+                <div class="font-weight-bold text-deep-purple-darken-2">Tap "Add"</div>
+                <div class="text-caption text-grey-darken-1">Confirm to install the app</div>
+              </div>
             </div>
-            <div class="d-flex align-center">
-              <v-icon class="mr-2" size="20">mdi-check</v-icon>
-              <span class="text-body-2">The app will be added to your home screen</span>
+            <div class="d-flex align-center ml-12">
+              <v-chip
+                color="amber-lighten-4"
+                size="small"
+                class="mr-2"
+                prepend-icon="mdi-check-circle"
+              >
+                <span class="text-amber-darken-3">Add</span>
+              </v-chip>
             </div>
           </div>
         </div>
       </v-card-text>
 
-      <v-card-actions>
+      <v-card-actions class="px-6 pb-6">
         <v-spacer></v-spacer>
-        <v-btn color="grey" variant="text" @click="dismissIOSInstructions"> Maybe Later </v-btn>
-        <v-btn color="primary" variant="text" @click="dismissIOSInstructions"> Got it! </v-btn>
+        <v-btn
+          color="grey-lighten-1"
+          variant="outlined"
+          rounded="lg"
+          @click="dismissIOSInstructions"
+        >
+          Maybe Later
+        </v-btn>
+        <v-btn
+          color="deep-purple-darken-1"
+          variant="elevated"
+          rounded="lg"
+          class="ml-3"
+          @click="dismissIOSInstructions"
+        >
+          Got it!
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- iOS Install Banner -->
-  <v-banner v-if="showIOSBanner" color="primary" icon="mdi-cellphone-arrow-down" lines="two" sticky>
-    <v-banner-text>
-      <strong>Install MealCheck App</strong><br />
-      Add to your home screen for quick access
+  <v-banner
+    v-if="showIOSBanner"
+    color="gradient-banner"
+    lines="two"
+    sticky
+    elevation="6"
+    rounded="0 0 16 16"
+  >
+    <template v-slot:prepend>
+      <v-avatar color="white" size="48" class="mr-4">
+        <v-icon color="deep-purple-darken-2" size="28">mdi-cellphone-arrow-down</v-icon>
+      </v-avatar>
+    </template>
+
+    <v-banner-text class="banner-text">
+      <div class="text-white font-weight-bold text-body-1">Install MealCheck App</div>
+      <div class="text-grey-lighten-4 text-body-2">
+        Quick access • Offline support • Native experience
+      </div>
     </v-banner-text>
 
     <template v-slot:actions>
       <v-btn
-        variant="outlined"
+        variant="elevated"
         color="white"
         size="small"
-        class="banner-btn"
+        class="text-deep-purple-darken-2 font-weight-bold mr-2"
+        rounded="lg"
         @click="showIOSInstallInstructions"
       >
-        How?
+        Install Now
       </v-btn>
-      <v-btn
-        variant="text"
-        color="white"
-        size="small"
-        class="banner-btn ml-2"
-        @click="dismissIOSBanner"
-      >
-        Dismiss
+      <v-btn variant="text" color="white" size="small" @click="dismissIOSBanner">
+        <v-icon>mdi-close</v-icon>
       </v-btn>
     </template>
   </v-banner>
@@ -236,23 +312,29 @@ onMounted(() => {
 
 <style scoped>
 .install-steps {
-  padding-left: 8px;
+  position: relative;
 }
 
 .step {
-  border-left: 2px solid #e0e0e0;
-  padding-left: 16px;
   position: relative;
+  padding-bottom: 8px;
 }
 
 .step:not(:last-child)::after {
   content: '';
   position: absolute;
-  left: -1px;
-  bottom: -12px;
+  left: 16px;
+  top: 40px;
   width: 2px;
-  height: 12px;
-  background-color: #e0e0e0;
+  height: calc(100% - 8px);
+  background: linear-gradient(180deg, #7c3aed 0%, #a855f7 100%);
+  opacity: 0.3;
+  border-radius: 1px;
+}
+
+.step-number {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .v-banner {
@@ -261,25 +343,76 @@ onMounted(() => {
   left: 0;
   right: 0;
   z-index: 1000;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%) !important;
 }
 
-.banner-btn {
-  color: white !important;
-  border-color: white !important;
-  min-width: 60px !important;
-}
-
-.banner-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Ensure banner text is visible */
-:deep(.v-banner-text) {
+.banner-text {
   color: white !important;
 }
 
-/* Ensure banner actions are visible */
-:deep(.v-banner__actions) {
-  align-items: center;
+/* Custom gradient classes */
+:deep(.v-avatar.gradient-primary) {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+}
+
+:deep(.v-avatar.gradient-step) {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+}
+
+/* Enhanced card styling */
+:deep(.v-card) {
+  border: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+/* Button hover effects */
+:deep(.v-btn) {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.v-btn:hover) {
+  transform: translateY(-1px);
+}
+
+/* Chip styling */
+:deep(.v-chip) {
+  font-weight: 600;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Banner animations */
+.v-banner {
+  animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Snackbar custom styling */
+:deep(.v-snackbar__wrapper) {
+  backdrop-filter: blur(10px);
+}
+
+/* Dialog entrance animation */
+:deep(.v-dialog > .v-overlay__content) {
+  animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 </style>

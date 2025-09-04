@@ -67,7 +67,7 @@ const todaysCollections = ref(0)
 const fetchUserMealCount = async () => {
   if (!authStore.user?.entraAd || !authStore.user?.department || !authStore.user?.entity) {
     console.log('Missing user data:', {
-      entraId: authStore.user?.entraId,
+      entraId: authStore.user?.entraAd,
       department: authStore.user?.department,
       entity: authStore.user?.entity,
     })

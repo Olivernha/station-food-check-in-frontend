@@ -29,10 +29,13 @@ apiClient.interceptors.request.use(
           config.headers = new AxiosHeaders()
         }
         if (typeof (config.headers as any).set === 'function') {
-          ;(config.headers as AxiosHeaders).set('Authorization', `Bearer ${response.accessToken}`)
+          ;(config.headers as AxiosHeaders).set(
+            'Authorization',
+            `Bearer ${response.accessToken ? import.meta.env.VITE_ACCESS_TOKEN : ''}`,
+          )
         } else {
           ;(config.headers as Record<string, string>)['Authorization'] =
-            `Bearer ${response.accessToken}`
+            `Bearer ${response.accessToken ? import.meta.env.VITE_ACCESS_TOKEN : ''}`
         }
       }
     } catch (error) {

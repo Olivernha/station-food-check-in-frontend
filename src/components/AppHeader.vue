@@ -82,4 +82,13 @@ withDefaults(defineProps<Props>(), {
 .v-app-bar {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
+/* Responsive font sizes for small screens */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.5rem !important; /* smaller title */
+  }
+  p {
+    font-size: 0.875rem !important; /* smaller subtitle */
+  }
+}
 </style>

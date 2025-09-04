@@ -137,8 +137,6 @@ export const useAuthStore = defineStore('auth', {
         return response.accessToken
       } catch (error: any) {
         console.error('Silent token acquisition failed:', error)
-
-        // Fallback to interactive login if silent acquisition fails
         try {
           const tokenRequest = {
             ...loginRequest,

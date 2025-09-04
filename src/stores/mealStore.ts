@@ -1,6 +1,9 @@
+// stores/mealStore.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import apiClient from '@/services/api' // Adjust path as needed
 
+// Interfaces
 export interface MealCollection {
   id?: string
   deptname: string
@@ -21,45 +24,50 @@ export interface ReportData {
   date: string
   total_record_count: number
   total_unique_staff: number
-  departments: any[]
+  departments: Department[]
 }
 
+// Store Definition
 export const useMealStore = defineStore('meal', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL
-
-  const handleResponse = async (response: Response) => {
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || 'Request failed')
-    }
-    return response.json()
+  // Utility to clear error state
+  const clearError = () => {
+    error.value = null
   }
 
-  const fetchAPI = async (endpoint: string, body: any) => {
+  // Generic API handler
+  const callApi = async <T>(endpoint: string, payload?: any): Promise<T> => {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      return await handleResponse(response)
-    } catch (err) {
-      console.error(`API error [${endpoint}]:`, err)
-      throw err
+      isLoading.value = true
+      const response = await apiClient.post<T>(endpoint, payload)
+      return response.data
+    } catch (err: any) {
+      const message = err.response?.data?.error || err.message || 'An unknown error occurred'
+      error.value = message
+      throw new Error(message)
+    } finally {
+      isLoading.value = false
     }
   }
 
-  // Mobile functions
-  const getTodayMealCount = async (entraadname: string, deptname: string, entity: string) => {
-    const result = await fetchAPI('/mobile/get_today_meal_count_by_user', {
-      entraadname,
-      deptname,
-      entity,
-    })
-    return result.record_count || 0
+  // Mobile Functions
+  const getTodayMealCount = async (
+    entraadname: string,
+    deptname: string,
+    entity: string,
+  ): Promise<number> => {
+    try {
+      const res = await callApi<{ record_count: number }>('/mobile/get_today_meal_count_by_user', {
+        entraadname,
+        deptname,
+        entity,
+      })
+      return res.record_count || 0
+    } catch {
+      return 0
+    }
   }
 
   const saveMealCollection = async (
@@ -69,9 +77,6 @@ export const useMealStore = defineStore('meal', () => {
     portionCount: number,
     entity: string,
   ): Promise<boolean> => {
-    isLoading.value = true
-    error.value = null
-
     const mealCollection: MealCollection = {
       fullname,
       entraadname: entraAD,
@@ -82,28 +87,32 @@ export const useMealStore = defineStore('meal', () => {
     }
 
     try {
-      await fetchAPI('/mobile/submit_meal_check_in', mealCollection)
-
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to save meal collection'
+      await callApi('/mobile/submit_meal_check_in', mealCollection)
+      return true
+    } catch {
       return false
-    } finally {
-      isLoading.value = false
     }
   }
 
-  // Admin functions
-  const getReportDataByDate = async (date: string): Promise<ReportData | null> => {
-    isLoading.value = true
-    error.value = null
+  // Admin Functions
+  const getReportDataByDate = async (date: string): Promise<ReportData> => {
     try {
-      const data = await fetchAPI('/admin/data_by_date', { date })
-      return data?.[0] || { date, total_record_count: 0, total_unique_staff: 0, departments: [] }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to fetch report data'
-      return null
-    } finally {
-      isLoading.value = false
+      const result = await callApi<ReportData[]>('/admin/data_by_date', { date })
+      return (
+        result?.[0] || {
+          date,
+          total_record_count: 0,
+          total_unique_staff: 0,
+          departments: [],
+        }
+      )
+    } catch {
+      return {
+        date,
+        total_record_count: 0,
+        total_unique_staff: 0,
+        departments: [],
+      }
     }
   }
 
@@ -111,17 +120,16 @@ export const useMealStore = defineStore('meal', () => {
     endpoint: '/admin/export_pdf' | '/admin/export_excel',
     date: string,
     departments: string[] = [],
-  ) => {
+  ): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, departments: departments.length ? departments : undefined }),
-      })
-      if (!response.ok) throw new Error('Export failed')
-      const blob = await response.blob()
+      const response = await apiClient.post(
+        endpoint,
+        { date, departments: departments.length ? departments : undefined },
+        { responseType: 'blob' },
+      )
+
       const ext = endpoint.endsWith('pdf') ? 'pdf' : 'xlsx'
-      const url = URL.createObjectURL(blob)
+      const url = URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
       link.download = `meal-report-${date}.${ext}`
@@ -130,30 +138,30 @@ export const useMealStore = defineStore('meal', () => {
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
       return true
-    } catch (err) {
-      console.error('Export error:', err)
-      error.value = err instanceof Error ? err.message : 'Failed to export report'
+    } catch (err: any) {
+      error.value = err.response?.data?.error || err.message || 'Export failed'
       return false
     }
   }
 
   const exportReportPDF = (date: string, departments: string[] = []) =>
     exportReport('/admin/export_pdf', date, departments)
+
   const exportReportExcel = (date: string, departments: string[] = []) =>
     exportReport('/admin/export_excel', date, departments)
-
-  const clearError = () => {
-    error.value = null
-  }
 
   return {
     isLoading,
     error,
+    clearError,
+
+    // Mobile
     getTodayMealCount,
     saveMealCollection,
+
+    // Admin
     getReportDataByDate,
     exportReportPDF,
     exportReportExcel,
-    clearError,
   }
 })
