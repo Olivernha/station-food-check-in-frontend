@@ -149,14 +149,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useMealStore } from '../stores/mealStore'
-
+import { useDepartments } from '@/composables/useDepartments'
 import AppHeader from '@/components/AppHeader.vue'
 import StatsCard from '@/components/StatsCard.vue'
 import DepartmentCard from '@/components/DepartmentCard.vue'
 import FilterCard from '@/components/FilterCard.vue'
 
 const mealStore = useMealStore()
-
+const { availableDepartments, selectedDepartments, fetchDepartments, selectAll, deselectAll } =
+  useDepartments()
 interface Staff {
   id: number
   name: string
@@ -186,7 +187,6 @@ const reportData = ref<ReportData | null>(null)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const selectedDate = ref(new Date().toISOString().split('T')[0]) // Today's date in YYYY-MM-DD format
-const selectedDepartments = ref<string[]>([])
 
 // Computed properties
 const currentDate = computed(() => {
@@ -254,9 +254,7 @@ const transformedDepartments = computed((): Department[] => {
     .filter((dept) => dept.staff.length > 0)
 })
 
-const availableDepartments = computed(() => {
-  return transformedDepartments.value.map((dept) => dept.name)
-})
+
 
 const filteredDepartments = computed(() => {
   if (selectedDepartments.value.length === 0) {
@@ -266,6 +264,7 @@ const filteredDepartments = computed(() => {
     selectedDepartments.value.includes(dept.name),
   )
 })
+
 
 const filterActions = computed(() => [
   {
@@ -345,13 +344,6 @@ const updateData = async () => {
   await fetchReportData()
 }
 
-const selectAll = () => {
-  selectedDepartments.value = [...availableDepartments.value]
-}
-
-const deselectAll = () => {
-  selectedDepartments.value = []
-}
 
 const clearError = () => {
   error.value = null
@@ -361,9 +353,9 @@ const clearError = () => {
 watch(selectedDate, () => {
   updateData()
 })
-
 // Initialize on mount
 onMounted(async () => {
+ await fetchDepartments()
   await fetchReportData()
   // Auto-select all departments after data is loaded
   selectedDepartments.value = [...availableDepartments.value]
