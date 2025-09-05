@@ -117,7 +117,7 @@ export const useMealStore = defineStore('meal', () => {
   }
 
   const exportReport = async (
-    endpoint: '/admin/export_pdf' | '/admin/export_excel',
+    endpoint: '/admin/export_pdf' | '/admin/export_excel_record',
     date: string,
     departments: string[] = [],
   ): Promise<boolean> => {
@@ -148,7 +148,7 @@ export const useMealStore = defineStore('meal', () => {
     exportReport('/admin/export_pdf', date, departments)
 
   const exportReportExcel = (date: string, departments: string[] = []) =>
-    exportReport('/admin/export_excel', date, departments)
+    exportReport('/admin/export_excel_record', date, departments)
 
   return {
     isLoading,

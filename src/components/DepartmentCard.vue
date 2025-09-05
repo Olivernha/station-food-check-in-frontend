@@ -20,6 +20,9 @@
           <v-list-item-title class="text-body-2 text-grey-darken-2 font-weight-regular">
             {{ staff.name }}
           </v-list-item-title>
+          <v-list-item-subtitle v-if="staff.checkinTime" class="text-caption text-grey">
+            Check-in: {{ formatCheckinDateTime(staff.checkinTime) }}
+          </v-list-item-subtitle>
 
           <template v-slot:append>
             <v-chip
@@ -43,6 +46,7 @@ interface Staff {
   id: number
   name: string
   portions: number
+  checkinTime?: string
 }
 
 interface Department {
@@ -65,6 +69,19 @@ const getPortionChipColor = (portions: number): string => {
   if (portions >= 3) return 'grey-darken-1'
   if (portions >= 2) return 'grey'
   return 'grey-lighten-1'
+}
+const formatCheckinDateTime = (time?: string): string => {
+  if (!time) return 'N/A'
+  const date = new Date(time)
+  return date.toLocaleString('en-SG', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  })
 }
 
 const getPortionTextColor = (portions: number): string => {

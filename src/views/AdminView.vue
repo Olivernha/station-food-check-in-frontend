@@ -163,6 +163,7 @@ interface Staff {
   name: string
   entraadname: string
   portions: number
+  checkinTime?: string
 }
 
 interface Department {
@@ -235,6 +236,7 @@ const transformedDepartments = computed((): Department[] => {
                 name: employeeRecord.fullname || 'Unknown',
                 entraadname: employeeRecord.entraadname || 'unknown',
                 portions: totalPortions,
+                checkinTime: employeeRecord.records[0]?.datetime || 'N/A', // assuming backend gives `time`
               })
             }
           }
@@ -254,17 +256,14 @@ const transformedDepartments = computed((): Department[] => {
     .filter((dept) => dept.staff.length > 0)
 })
 
-
-
 const filteredDepartments = computed(() => {
   if (selectedDepartments.value.length === 0) {
     return transformedDepartments.value
   }
   return transformedDepartments.value.filter((dept) =>
-    selectedDepartments.value.includes(dept.name),
+    selectedDepartments.value.includes(dept.deptname),
   )
 })
-
 
 const filterActions = computed(() => [
   {
@@ -344,7 +343,6 @@ const updateData = async () => {
   await fetchReportData()
 }
 
-
 const clearError = () => {
   error.value = null
 }
@@ -355,7 +353,7 @@ watch(selectedDate, () => {
 })
 // Initialize on mount
 onMounted(async () => {
- await fetchDepartments()
+  await fetchDepartments()
   await fetchReportData()
   // Auto-select all departments after data is loaded
   selectedDepartments.value = [...availableDepartments.value]

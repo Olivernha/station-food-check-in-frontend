@@ -108,6 +108,15 @@ export const useAuthStore = defineStore('auth', {
             entity: profile.companyName,
             entraAd: (profile.mail || profile.userPrincipalName).split('@')[0],
           }
+          // this.user = {
+          //   displayName: 'Edward',
+          //   email: 'edward@tuaspower.com.sg',
+          //   jobTitle: 'security guard',
+          //   department: 'Security',
+          //   id: profile.id,
+          //   entity: profile.companyName,
+          //   entraAd: 'edward@tuaspower.com.sg'.split('@')[0],
+          // }
 
           return this.user
         } else {
