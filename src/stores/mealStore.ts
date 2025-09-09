@@ -117,7 +117,7 @@ export const useMealStore = defineStore('meal', () => {
   }
 
   const exportReport = async (
-    endpoint: '/admin/export_pdf' | '/admin/export_excel_record',
+    endpoint: '/admin/export_excel_record' | '/admin/export_excel_record_by_department',
     date: string,
     departments: string[] = [],
   ): Promise<boolean> => {
@@ -144,12 +144,13 @@ export const useMealStore = defineStore('meal', () => {
     }
   }
 
-  const exportReportPDF = (date: string, departments: string[] = []) =>
-    exportReport('/admin/export_pdf', date, departments)
+  const exportReportExcel = (date: string, departments: string[] = []) => {
+    const endpoint = departments.length
+      ? '/admin/export_excel_record_by_department'
+      : '/admin/export_excel_record'
 
-  const exportReportExcel = (date: string, departments: string[] = []) =>
-    exportReport('/admin/export_excel_record', date, departments)
-
+    return exportReport(endpoint, date, departments)
+  }
   return {
     isLoading,
     error,
@@ -161,7 +162,6 @@ export const useMealStore = defineStore('meal', () => {
 
     // Admin
     getReportDataByDate,
-    exportReportPDF,
     exportReportExcel,
   }
 })

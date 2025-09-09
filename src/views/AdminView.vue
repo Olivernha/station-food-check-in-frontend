@@ -47,31 +47,17 @@
               class="mb-4"
             />
 
-            <!-- Export Button with Dropdown -->
             <v-card elevation="1" class="mb-4">
               <v-card-text class="d-flex ga-3">
-                <v-menu>
-                  <template v-slot:activator="{ props }">
-                    <v-btn
-                      color="blue-grey-darken-1"
-                      prepend-icon="mdi-file-export"
-                      append-icon="mdi-chevron-down"
-                      variant="outlined"
-                      v-bind="props"
-                      :disabled="isLoading"
-                    >
-                      Export Report
-                    </v-btn>
-                  </template>
-                  <v-list>
-                    <v-list-item @click="exportExcel">
-                      <template v-slot:prepend>
-                        <v-icon color="green-darken-1">mdi-microsoft-excel</v-icon>
-                      </template>
-                      <v-list-item-title>Export as Excel</v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
+                <v-btn
+                  color="green-darken-1"
+                  prepend-icon="mdi-microsoft-excel"
+                  variant="outlined"
+                  :disabled="isLoading"
+                  @click="exportExcel"
+                >
+                  Export as Excel
+                </v-btn>
 
                 <v-btn
                   color="blue-grey-lighten-1"
@@ -84,7 +70,6 @@
                 </v-btn>
               </v-card-text>
             </v-card>
-
             <!-- No Data State -->
             <v-card
               v-if="filteredDepartments.length === 0 && !isLoading"
@@ -307,8 +292,7 @@ const fetchReportData = async () => {
 
 const exportExcel = async () => {
   try {
-    console.log('Exporting Excel report...')
-    // You can implement Excel export here or call mealStore method
+    console.log('Exporting Excel report for:', selectedDate.value, selectedDepartments.value)
     await mealStore.exportReportExcel(selectedDate.value, selectedDepartments.value)
   } catch (err) {
     console.error('Error exporting Excel:', err)
