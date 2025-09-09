@@ -64,12 +64,6 @@
                     </v-btn>
                   </template>
                   <v-list>
-                    <v-list-item @click="exportPDF">
-                      <template v-slot:prepend>
-                        <v-icon color="red-darken-1">mdi-file-pdf-box</v-icon>
-                      </template>
-                      <v-list-item-title>Export as PDF</v-list-item-title>
-                    </v-list-item>
                     <v-list-item @click="exportExcel">
                       <template v-slot:prepend>
                         <v-icon color="green-darken-1">mdi-microsoft-excel</v-icon>
@@ -308,17 +302,6 @@ const fetchReportData = async () => {
     reportData.value = null
   } finally {
     isLoading.value = false
-  }
-}
-
-const exportPDF = async () => {
-  try {
-    console.log('Exporting PDF report...')
-    // You can implement PDF export here or call mealStore method
-    await mealStore.exportReportPDF(selectedDate.value, selectedDepartments.value)
-  } catch (err) {
-    console.error('Error exporting PDF:', err)
-    error.value = 'Failed to export PDF'
   }
 }
 
