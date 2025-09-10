@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { msalInstance } from '../services/msal'
 import { loginRequest } from '../config/msalConfig'
 import type { AccountInfo } from '@azure/msal-browser'
+import apiClient from '@/services/api'
 interface UserInfo {
   entraAd: string
   displayName: string
@@ -10,11 +11,13 @@ interface UserInfo {
   department?: string
   id: string
   entity?: string
+
 }
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     userAccount: null as AccountInfo | null,
     user: null as UserInfo | null,
+    isAdmin: false,
     isAuthenticated: false,
     isLoading: false,
     error: null as string | null,
@@ -35,6 +38,7 @@ export const useAuthStore = defineStore('auth', {
           this.userAccount = accounts[0]
           this.isAuthenticated = true
           await this.fetchUserProfile()
+
         }
       } catch (error: any) {
         console.error('Auth initialization failed:', error)
@@ -99,6 +103,7 @@ export const useAuthStore = defineStore('auth', {
 
         if (response.ok) {
           const profile = await response.json()
+          await this.checkAdmin(profile.mail)
           this.user = {
             displayName: profile.displayName,
             email: profile.mail || profile.userPrincipalName,
@@ -160,6 +165,22 @@ export const useAuthStore = defineStore('auth', {
         }
       }
     },
+    async checkAdmin(upn: string) {
+      try {
+        const response = await apiClient.post('/adminaccess/check_access', {
+          user_upn: upn,
+        })
+
+        const data = response.data
+        this.isAdmin = data.access
+        console.log('isAdmin', this.isAdmin)
+      } catch (error: any) {
+        this.isAdmin = false
+
+      }
+    }
+    ,
+
 
     // hasRole(role: string): boolean {
     //   if (!this.userAccount) return false
