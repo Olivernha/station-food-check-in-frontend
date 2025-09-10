@@ -174,7 +174,8 @@ export const useAuthStore = defineStore('auth', {
         const data = response.data
         this.isAdmin = data.access
         console.log('isAdmin', this.isAdmin)
-      } catch (error: any) {
+      } catch (err: any) {
+        console.log('Error checking admin access:', err)
         this.isAdmin = false
 
       }
