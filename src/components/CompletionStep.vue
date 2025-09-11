@@ -1,5 +1,19 @@
 <template>
   <v-container class="fill-height d-flex align-center justify-center">
+    <!-- Instruction -->
+    <!-- Instruction Alert -->
+    <v-alert
+      type="info"
+      variant="tonal"
+      class="mb-8 text-h6 alert-slide instruction-alert"
+      rounded="xl"
+    >
+      <template v-slot:prepend>
+        <v-icon size="24" class="alert-icon">mdi-information</v-icon>
+      </template>
+      Show this voucher to the food vendor
+    </v-alert>
+
     <div class="text-center w-100 pa-6 step-container">
       <!-- Success Animation -->
       <div class="success-animation mb-6">
@@ -503,4 +517,31 @@ defineEmits<{
 .home-button:hover .home-icon {
   transform: scale(1.1) translateX(-2px);
 }
+.alert-slide {
+  animation: alertSlide 0.8s ease-out forwards;
+  animation-delay: 1.2s;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@keyframes alertSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.alert-icon {
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.instruction-alert {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+}
+
 </style>

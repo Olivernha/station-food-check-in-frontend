@@ -1,13 +1,9 @@
 <template>
   <v-container class="fill-height d-flex align-center justify-center">
     <div class="text-center w-100 pa-6 step-container">
-      <div class="bg-success pa-6 voucher-header">
-        <v-icon size="60" color="white" class="mb-4 bounce-in voucher-icon"> mdi-food </v-icon>
-        <h1 class="text-h4 font-weight-bold mb-6 text-white fade-in-up">Meal Collection Voucher</h1>
-      </div>
-
       <!-- Portion Display -->
       <div class="text-center mb-8 portion-showcase">
+        <h1 class="text-h3 text-grey-darken-1 font-weight-bold mb-2 fade-in-up">You selected</h1>
         <div
           class="text-h1 font-weight-bold text-success mb-2 ma-5 number-pop"
           style="font-size: 5rem !important"
@@ -21,52 +17,40 @@
 
       <v-divider class="mb-6 divider-animate"></v-divider>
 
-      <!-- User Details -->
-      <div class="mb-6 details-container">
-        <v-row
-          v-for="(detail, index) in userDetails"
-          :key="detail.label"
-          class="mb-3 detail-row"
-          :style="{ animationDelay: `${index * 150}ms` }"
+      <!-- Action Buttons -->
+      <div class="d-flex flex-column ga-4">
+        <v-btn
+          color="success"
+          size="x-large"
+          block
+          rounded="xl"
+          class="py-4 fade-in-up pulse-hover complete-btn"
+          :loading="isLoading"
+          :disabled="isLoading"
+          @click="$emit('complete')"
         >
-          <v-col cols="5" class="text-left">
-            <span class="text-h6 text-grey detail-label">{{ detail.label }}:</span>
-          </v-col>
-          <v-col cols="7" class="text-right">
-            <span class="text-h6 font-weight-medium detail-value">{{ detail.value }}</span>
-          </v-col>
-        </v-row>
+          <v-icon start size="24">mdi-check-circle</v-icon>
+          {{ isLoading ? 'Processing...' : 'Confirm' }}
+        </v-btn>
+
+        <v-btn
+          color="grey-darken-1"
+          variant="outlined"
+          size="large"
+          block
+          rounded="xl"
+          class="py-3 fade-in-up cancel-btn"
+          :disabled="isLoading"
+          @click="$emit('cancel')"
+        >
+          <v-icon start size="20">mdi-close</v-icon>
+          Cancel
+        </v-btn>
       </div>
-
-      <!-- Instruction -->
-      <v-alert
-        type="info"
-        variant="tonal"
-        class="mb-8 text-h6 alert-slide instruction-alert"
-        rounded="xl"
-      >
-        <template v-slot:prepend>
-          <v-icon size="24" class="alert-icon">mdi-information</v-icon>
-        </template>
-        Show this voucher to the food vendor
-      </v-alert>
-
-      <v-btn
-        color="success"
-        size="x-large"
-        block
-        rounded="xl"
-        class="py-4 fade-in-up pulse-hover complete-btn"
-        :loading="isLoading"
-        :disabled="isLoading"
-        @click="$emit('complete')"
-      >
-        <v-icon start size="24">mdi-check-circle</v-icon>
-        {{ isLoading ? 'Processing...' : 'Confirm Collection' }}
-      </v-btn>
     </div>
   </v-container>
 </template>
+
 
 <script setup lang="ts">
 interface UserDetail {
@@ -83,6 +67,7 @@ interface Props {
 defineProps<Props>()
 defineEmits<{
   complete: []
+  cancel: []
 }>()
 </script>
 
@@ -298,27 +283,7 @@ defineEmits<{
   color: rgb(var(--v-theme-primary));
 }
 
-.alert-slide {
-  animation: alertSlide 0.8s ease-out forwards;
-  animation-delay: 1.2s;
-  opacity: 0;
-  transform: translateY(30px);
-}
 
-@keyframes alertSlide {
-  0% {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.alert-icon {
-  animation: iconPulse 2s ease-in-out infinite;
-}
 
 @keyframes iconPulse {
   0%,
@@ -343,12 +308,18 @@ defineEmits<{
   animation-delay: 1.4s;
 }
 
+.cancel-btn {
+  animation-delay: 1.6s;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.cancel-btn:hover:not(:disabled) {
+  transform: scale(1.02) translateY(-2px);
+  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
+}
+
 .voucher-icon {
   filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3));
 }
 
-.instruction-alert {
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(33, 150, 243, 0.2);
-}
 </style>

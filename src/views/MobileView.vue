@@ -39,6 +39,7 @@
           :user-details="userDetails"
           :is-loading="isLoading"
           @complete="completeCollection"
+          @cancel="currentStep = 3"
         />
 
         <CompletionStep

@@ -90,7 +90,7 @@
               v-for="department in filteredDepartments"
               :key="department.name"
               :department="department"
-              elevation="0"
+              :elevation="1"
               class="mb-3"
             />
           </v-col>
@@ -143,6 +143,7 @@ interface Staff {
   entraadname: string
   portions: number
   checkinTime?: string
+  records: any[]
 }
 
 interface Department {
@@ -203,9 +204,9 @@ const transformedDepartments = computed((): Department[] => {
       if (dept.records && Array.isArray(dept.records)) {
         dept.records.forEach((employeeRecord: any) => {
           if (employeeRecord.records && employeeRecord.records.length > 0) {
-            // Calculate total portions for this employee on this date
+            // Sum portions from all meal_count values
             const totalPortions = employeeRecord.records.reduce(
-              (sum: number, record: any) => sum + (record.count || 0),
+              (sum: number, r: any) => sum + (r.meal_count || 0),
               0,
             )
 
@@ -215,7 +216,8 @@ const transformedDepartments = computed((): Department[] => {
                 name: employeeRecord.fullname || 'Unknown',
                 entraadname: employeeRecord.entraadname || 'unknown',
                 portions: totalPortions,
-                checkinTime: employeeRecord.records[0]?.datetime || 'N/A', // assuming backend gives `time`
+                checkinTime: employeeRecord.records[0].datetime || 'N/A',
+                records: employeeRecord.records || [],
               })
             }
           }
@@ -227,7 +229,7 @@ const transformedDepartments = computed((): Department[] => {
         deptname: dept.deptname,
         entity: dept.entity,
         staff,
-        totalPortions: staff.reduce((sum, s) => sum + s.portions, 0),
+        totalPortions: staff.reduce((sum, s) => sum + s.portions, 0), // sum of all meal counts
         staff_count: dept.staff_count || staff.length,
         record_count: dept.record_count || 0,
       }

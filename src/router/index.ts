@@ -55,12 +55,6 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
     return next('/unauthorized')
   }
-
-  // Redirect admin from home page to /admin
-  if (to.path === '/' && authStore.isAdmin) {
-    return next('/admin')
-  }
-
   next()
 })
 

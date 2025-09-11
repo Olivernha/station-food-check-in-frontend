@@ -25,7 +25,11 @@ const signInWithMicrosoft = async () => {
   error.value = ''
   try {
     await authStore.login()
-    router.push({ name: 'Home' })
+    if (authStore.isAdmin) {
+      router.push({ name: 'Admin' })
+    } else {
+      router.push({ name: 'Home' })
+    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Sign in failed.'
     isLoading.value = false
@@ -56,9 +60,11 @@ onMounted(() => {
     <v-main class="bg-grey-lighten-4">
       <v-container class="fill-height d-flex align-center justify-center">
         <div class="text-center w-100 pa-6 step-content">
-          <v-icon color="primary" class="mb-8">mdi-microsoft</v-icon>
+          <v-icon color="primary" class="mb-8"><img :src="logo" width="100"  alt="TUAS Logo" /></v-icon>
           <h1 class="text-h2 font-weight-bold mb-6">Welcome</h1>
-          <p class="text-h5 text-grey mb-12">Please sign in with Microsoft to continue</p>
+          <p class="text-h5 text-grey mb-12">
+            Please sign in with your Microsoft Account to continue
+          </p>
 
           <v-alert
             v-if="error"
@@ -83,7 +89,7 @@ onMounted(() => {
           >
             <v-icon start>mdi-microsoft</v-icon>
             <span class="text-h6">{{
-              isLoading ? 'Signing In...' : 'Sign In with Microsoft'
+              isLoading ? 'Signing In...' : 'Sign In with Your Microsoft ID '
             }}</span>
           </v-btn>
         </div>
