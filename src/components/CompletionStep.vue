@@ -85,15 +85,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useMealCount } from '../composables/useMealCount'
 
 interface Props {
   currentPortion: number
-  detailedDateTime: string // This is required but missing
+  detailedDateTime: string
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 defineEmits<{
   goHome: []
@@ -101,6 +101,8 @@ defineEmits<{
 
 // Use the meal count composable to get the most up-to-date total
 const { todaysCollections, isLoading: mealCountLoading, refreshMealCount } = useMealCount()
+
+// Computed property to show either the updated total or fallback to current portion
 
 // Refresh meal count when component mounts to ensure we have the latest data
 onMounted(async () => {

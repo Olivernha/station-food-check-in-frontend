@@ -45,16 +45,14 @@
         <CompletionStep
           v-else-if="currentStep === 5"
           key="complete"
-          :current-portion="portionsToCollect"
+          :currentPortion="portionsToCollect"
           :detailed-date-time="detailedDateTime"
           @go-home="goHome"
-
         />
       </transition>
     </v-main>
   </v-app>
 </template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import logo from '@/assets/img/tuaslogo.png'
