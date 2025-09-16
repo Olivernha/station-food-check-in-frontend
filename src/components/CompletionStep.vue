@@ -1,6 +1,5 @@
 <template>
   <v-container class="fill-height d-flex align-center justify-center">
-    <!-- Instruction -->
     <!-- Instruction Alert -->
     <v-alert
       type="info"
@@ -35,14 +34,33 @@
       <div class="summary-card mb-8">
         <div class="summary-header">
           <div class="completion-number">
-            {{ totalPortions }}
+            {{ currentPortion }}
           </div>
-          <div class="completion-label">
-            portion{{ totalPortions > 1 ? 's' : '' }} collected today
-          </div>
+          <div class="completion-label">portion{{ currentPortion > 1 ? 's' : '' }} collected</div>
         </div>
 
         <div class="summary-divider"></div>
+
+        <div class="total-summary">
+          <!-- Show loading state while fetching updated count -->
+          <template v-if="mealCountLoading && !todaysCollections">
+            <div class="total-loading">
+              <v-icon size="24" class="rotating mb-2">mdi-loading</v-icon>
+              <div class="total-label">updating daily total...</div>
+            </div>
+          </template>
+          <!-- Show updated total or fallback to current portion -->
+          <v-chip
+            color="success"
+            variant="tonal"
+            size="large"
+            prepend-icon="mdi-check-circle"
+            class="collection-chip"
+          >
+            You have collected {{ todaysCollections }} portion{{ todaysCollections > 1 ? 's' : '' }}
+            today
+          </v-chip>
+        </div>
 
         <div class="completion-time">
           <v-icon size="20" color="grey" class="me-2">mdi-clock-outline</v-icon>
@@ -67,16 +85,27 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
+import { useMealCount } from '../composables/useMealCount'
+
 interface Props {
-  totalPortions: number
-  detailedDateTime: string
+  currentPortion: number
+  detailedDateTime: string // This is required but missing
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 defineEmits<{
   goHome: []
 }>()
+
+// Use the meal count composable to get the most up-to-date total
+const { todaysCollections, isLoading: mealCountLoading, refreshMealCount } = useMealCount()
+
+// Refresh meal count when component mounts to ensure we have the latest data
+onMounted(async () => {
+  await refreshMealCount()
+})
 </script>
 
 <style scoped>
@@ -448,6 +477,86 @@ defineEmits<{
   }
 }
 
+.total-summary {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 1.5rem;
+}
+
+.total-loading {
+  color: #888;
+  animation: loadingFadeIn 0.6s ease-out 1.4s backwards;
+}
+
+@keyframes loadingFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rotating {
+  animation: rotate 1s linear infinite;
+  color: #2196f3;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.total-number {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  color: #2196f3;
+  line-height: 1 !important;
+  margin-bottom: 0.5rem;
+  animation: totalNumberCountUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1.4s backwards;
+  text-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+@keyframes totalNumberCountUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotateX(-90deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) rotateX(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotateX(0deg);
+  }
+}
+
+.total-label {
+  font-size: 1rem !important;
+  font-weight: 400;
+  color: #888;
+  animation: totalLabelFadeIn 0.6s ease-out 1.7s backwards;
+  letter-spacing: 0.5px;
+}
+
+@keyframes totalLabelFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .completion-time {
   display: flex;
   align-items: center;
@@ -517,6 +626,7 @@ defineEmits<{
 .home-button:hover .home-icon {
   transform: scale(1.1) translateX(-2px);
 }
+
 .alert-slide {
   animation: alertSlide 0.8s ease-out forwards;
   animation-delay: 1.2s;
@@ -543,5 +653,4 @@ defineEmits<{
   backdrop-filter: blur(10px);
   border: 1px solid rgba(33, 150, 243, 0.2);
 }
-
 </style>

@@ -45,9 +45,10 @@
         <CompletionStep
           v-else-if="currentStep === 5"
           key="complete"
-          :total-portions="portionsToCollect"
+          :current-portion="portionsToCollect"
           :detailed-date-time="detailedDateTime"
           @go-home="goHome"
+
         />
       </transition>
     </v-main>

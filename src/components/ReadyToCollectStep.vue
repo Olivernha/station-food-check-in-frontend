@@ -1,4 +1,4 @@
-<!-- Updated ReadyToCollectStep Component -->
+<!-- Updated ReadyToCollectStep Component with Composable -->
 <template>
   <v-container class="fill-height d-flex align-center justify-center">
     <div class="text-center w-100 pa-6 step-container">
@@ -24,6 +24,34 @@
             today
           </v-chip>
         </div>
+
+        <!-- Loading state for meal count -->
+        <div v-else-if="mealCountLoading" class="collection-status">
+          <v-chip
+            color="grey"
+            variant="tonal"
+            size="large"
+            prepend-icon="mdi-loading"
+            class="collection-chip loading-chip"
+          >
+            <v-icon class="rotating">mdi-loading</v-icon>
+            Loading your meal history...
+          </v-chip>
+        </div>
+
+        <!-- Error state -->
+        <div v-else-if="mealCountError" class="collection-status">
+          <v-chip
+            color="warning"
+            variant="tonal"
+            size="large"
+            prepend-icon="mdi-alert-circle"
+            class="collection-chip"
+            @click="refreshMealCount"
+          >
+            Failed to load history. Tap to retry.
+          </v-chip>
+        </div>
       </div>
 
       <v-btn
@@ -44,9 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useMealStore } from '../stores/mealStore'
-import { useAuthStore } from '../stores/auth'
+import { useMealCount } from '../composables/useMealCount'
 
 interface Props {
   userName: string
@@ -58,47 +84,13 @@ defineEmits<{
   collectMeal: []
 }>()
 
-const mealStore = useMealStore()
-const authStore = useAuthStore()
-
-const todaysCollections = ref(0)
-
-// Fetch user's daily meal count
-const fetchUserMealCount = async () => {
-  if (!authStore.user?.entraAd || !authStore.user?.department || !authStore.user?.entity) {
-    console.log('Missing user data:', {
-      entraId: authStore.user?.entraAd,
-      department: authStore.user?.department,
-      entity: authStore.user?.entity,
-    })
-    return
-  }
-
-  try {
-    console.log('Fetching meal count for user:', authStore.user.entraAd)
-    const count = await mealStore.getTodayMealCount(
-      authStore.user.entraAd,
-      authStore.user.department,
-      authStore.user.entity,
-    )
-    console.log('Received meal count:', count)
-    todaysCollections.value = count
-  } catch (error) {
-    console.error('Error fetching user meal count:', error)
-  }
-}
-
-// Watch for auth user changes
-watch(
-  () => authStore.user,
-  async (newUser) => {
-    console.log('Auth user changed:', newUser)
-    if (newUser) {
-      await fetchUserMealCount()
-    }
-  },
-  { immediate: true },
-)
+// Use the meal count composable
+const {
+  todaysCollections,
+  isLoading: mealCountLoading,
+  error: mealCountError,
+  refreshMealCount,
+} = useMealCount()
 </script>
 
 <style scoped>
@@ -177,6 +169,34 @@ watch(
   padding: 12px 20px !important;
   height: auto !important;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  cursor: default;
+}
+
+.collection-chip.loading-chip {
+  cursor: default;
+}
+
+.collection-chip[color='warning'] {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collection-chip[color='warning']:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(255, 193, 7, 0.3);
+}
+
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes slideInFromBottom {
