@@ -9,7 +9,7 @@ import { msalInstance } from './msal.ts'
 import { tokenRequest } from '../config/msalConfig'
 import type { SilentRequest } from '@azure/msal-browser'
 
-const API_BASE_URL: string = 'http://localhost:8000'
+const API_BASE_URL: string = import.meta.env.VITE_BACKEND_URL
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
