@@ -162,6 +162,7 @@ const {
   animation-fill-mode: both;
 }
 
+/* Default chip styling (desktop) */
 .collection-chip {
   font-weight: 600 !important;
   font-size: 1rem !important;
@@ -169,7 +170,18 @@ const {
   padding: 12px 20px !important;
   height: auto !important;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
-  cursor: default;
+}
+
+/* Mobile-specific styling */
+@media (max-width: 600px) {
+  .collection-chip {
+    font-size: 0.9rem !important; /* smaller font */
+    padding: 6px 12px !important; /* smaller padding */
+  }
+
+  .collection-chip v-icon {
+    font-size: 16px !important; /* smaller icon */
+  }
 }
 
 .collection-chip.loading-chip {
