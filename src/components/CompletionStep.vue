@@ -162,6 +162,17 @@ onMounted(async () => {
   animation: successIconPulse 2s ease-in-out infinite;
   filter: drop-shadow(0 4px 12px rgba(76, 175, 80, 0.4));
 }
+.collection-chip {
+  font-size: 1rem; /* default size */
+  padding: 0.5rem 1rem;
+}
+
+@media (max-width: 600px) {
+  .collection-chip {
+    font-size: 0.8rem; /* smaller font on mobile */
+    padding: 0.25rem 0.5rem; /* smaller padding */
+  }
+}
 
 @keyframes successIconPulse {
   0%,

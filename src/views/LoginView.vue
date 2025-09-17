@@ -97,3 +97,22 @@ onMounted(() => {
     </v-main>
   </v-app>
 </template>
+<style scoped>
+.step-content .v-btn {
+  max-width: 400px;
+  padding: 24px 0;
+}
+
+@media (max-width: 600px) {
+  .step-content .v-btn {
+    max-width: 90%;
+    padding: 16px 12px;
+    font-size: 0.9rem;
+  }
+
+  .step-content .v-btn span.text-h6 {
+    font-size: 0.9rem;
+  }
+}
+
+</style>
