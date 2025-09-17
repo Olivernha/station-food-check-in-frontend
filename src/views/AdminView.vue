@@ -6,7 +6,7 @@
       subtitle="Staff Meal Portion Tracking System"
       color="blue-grey-darken-3"
       :dark="true"
-      :height="70"
+      :height="mobile ? 120 : 80"
       :show-logo="true"
       icon="mdi-food"
       :icon-size="24"
@@ -127,14 +127,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useDisplay } from 'vuetify'
 import { useMealStore } from '../stores/mealStore'
 import { useDepartments } from '@/composables/useDepartments'
 import AppHeader from '@/components/AppHeader.vue'
 import StatsCard from '@/components/StatsCard.vue'
 import DepartmentCard from '@/components/DepartmentCard.vue'
 import FilterCard from '@/components/FilterCard.vue'
-
 const mealStore = useMealStore()
+const { mobile } = useDisplay()
 const { availableDepartments, selectedDepartments, fetchDepartments, selectAll, deselectAll } =
   useDepartments()
 interface Staff {

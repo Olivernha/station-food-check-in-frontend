@@ -27,6 +27,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/UnauthorizedView.vue'),
   },
   {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: () => import('@/views/AuthCallbackView.vue'),
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFoundView.vue'),
@@ -41,20 +46,24 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Redirect to login if route requires auth and user is not authenticated
+  // Allow MSAL redirect callback route without checks
+  if (to.path === '/auth/callback') {
+    return next()
+  }
+
+  // Normal auth checks
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next('/login')
   }
 
-  // Fetch user profile if needed
   if ((to.meta.requiresAdmin || to.path === '/') && !authStore.user) {
     await authStore.fetchUserProfile()
   }
 
-  // Admin check for /admin route
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
     return next('/unauthorized')
   }
+
   next()
 })
 
