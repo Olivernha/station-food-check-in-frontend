@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import logo from '@/assets/img/tuaslogo.png'
 import AppHeader from '@/components/AppHeader.vue'
 import { useRouter } from 'vue-router'
@@ -25,23 +25,12 @@ const signInWithMicrosoft = async () => {
   error.value = ''
   try {
     await authStore.login()
-    if (authStore.isAdmin) {
-      router.push({ name: 'Admin' })
-    } else {
-      router.push({ name: 'Home' })
-    }
+    router.replace('/')
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Sign in failed.'
     isLoading.value = false
   }
 }
-
-onMounted(() => {
-  if (authStore.isAuthenticated) {
-    // User is already authenticated, redirect to main app view
-    router.push({ name: 'Home' })
-  }
-})
 </script>
 
 <template>
@@ -60,7 +49,9 @@ onMounted(() => {
     <v-main class="bg-grey-lighten-4">
       <v-container class="fill-height d-flex align-center justify-center">
         <div class="text-center w-100 pa-6 step-content">
-          <v-icon color="primary" class="mb-8"><img :src="logo" width="100"  alt="TUAS Logo" /></v-icon>
+          <v-icon color="primary" class="mb-8"
+            ><img :src="logo" width="100" alt="TUAS Logo"
+          /></v-icon>
           <h1 class="text-h2 font-weight-bold mb-6">Welcome</h1>
           <p class="text-h5 text-grey mb-12">
             Please sign in with your Microsoft Account to continue
@@ -114,5 +105,4 @@ onMounted(() => {
     font-size: 0.9rem;
   }
 }
-
 </style>
