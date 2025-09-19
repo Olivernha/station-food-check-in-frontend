@@ -2,7 +2,7 @@ export const msalConfig = {
   auth: {
     clientId: import.meta.env.VITE_AZURE_CLIENT_ID,
     authority: `https://login.microsoftonline.com/${import.meta.env.VITE_AZURE_TENANT_ID}`,
-    redirectUri: import.meta.env.VITE_AZURE_REDIRECT_URL,
+    redirectUri: import.meta.env.VITE_AZURE_REDIRECT_URL, // Optional for popup flow
     postLogoutRedirectUri:
       import.meta.env.VITE_AZURE_REDIRECT_URL?.replace('/auth/callback', '') ||
       window.location.origin,
@@ -19,14 +19,14 @@ export const msalConfig = {
     redirectNavigationTimeout: 20000,
     asyncPopups: false,
     allowNativeBroker: false,
-    allowRedirectInIframe: false, // Important for history mode
+    allowRedirectInIframe: false,
     loggerOptions: {
       loggerCallback: (level: any, message: any, containsPii: any) => {
         if (!containsPii) {
           console.log(`[MSAL] ${level}: ${message}`)
         }
       },
-      logLevel: 'Info', // Change to 'Verbose' for debugging
+      logLevel: 'Verbose', // Set to Verbose for debugging
       piiLoggingEnabled: false,
     },
   },
@@ -34,12 +34,13 @@ export const msalConfig = {
 
 export const loginRequest = {
   scopes: ['User.Read', 'openid', 'profile'],
-  extraQueryParameters: {
-    response_mode: 'query'
-  }
+  // Remove response_mode for popup flow
+  // extraQueryParameters: {
+  //   response_mode: 'query'
+  // }
 }
 
 export const tokenRequest = {
-  scopes: [`User.Read`],
+  scopes: ['User.Read'],
   account: null,
 }
