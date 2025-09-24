@@ -1,16 +1,9 @@
 <template>
   <v-container class="fill-height d-flex align-center justify-center">
     <div class="text-center w-100 pa-6 step-container">
+      <h1 class="text-h3 font-weight-bold mb-2 fade-in-up">Select Portions</h1>
 
-
-
-      <h1 class="text-h3 font-weight-bold mb-2 fade-in-up">
-        Select Portions
-      </h1>
-
-      <p class="text-h6 text-grey mb-8 fade-in-up">
-        How many portions are you collecting?
-      </p>
+      <p class="text-h6 text-grey mb-8 fade-in-up">How many portions are you collecting?</p>
 
       <div class="d-flex align-center justify-center my-12 scale-in portion-selector">
         <v-btn
@@ -197,7 +190,8 @@ const decreasePortion = () => {
 }
 
 @keyframes portionFloat {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {

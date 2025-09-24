@@ -57,8 +57,7 @@
             prepend-icon="mdi-check-circle"
             class="collection-chip"
           >
-            You have collected {{ todaysCollections }} portion{{ todaysCollections > 1 ? 's' : '' }}
-            today
+            Total {{ todaysCollections }} Collected today
           </v-chip>
         </div>
 
@@ -170,7 +169,7 @@ onMounted(async () => {
 @media (max-width: 600px) {
   .collection-chip {
     font-size: 0.8rem; /* smaller font on mobile */
-    padding: 0.25rem 0.5rem; /* smaller padding */
+    padding: 1rem; /* smaller padding */
   }
 }
 

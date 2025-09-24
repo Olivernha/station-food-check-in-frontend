@@ -274,35 +274,27 @@ const dismissIOSBanner = () => {
 onMounted(() => {
   const { isIOSDevice } = detectIOSDevice()
 
-  // Don't show if app is already installed
-  if (isAppInstalled()) {
-    console.log('App is already installed')
-    return
-  }
-
-  // Don't show if user has recently dismissed
-  if (hasUserDismissedInstall()) {
-    console.log('User has dismissed install prompt recently')
-    return
-  }
+  // Skip if app is installed or user dismissed recently
+  if (isAppInstalled() || hasUserDismissedInstall()) return
 
   if (isIOSDevice) {
-    // For iOS devices, show banner after a short delay
-    setTimeout(() => {
-      showIOSBanner.value = true
-    }, 3000)
+    // Show iOS banner immediately
+    showIOSBanner.value = true
   } else {
-    // For Android/Desktop, use the standard beforeinstallprompt event
+    // Show Android/Desktop snackbar immediately for better UX
+    showInstallPrompt.value = true
+
+    // Listen for beforeinstallprompt for the actual install
     window.addEventListener('beforeinstallprompt', (e: Event) => {
       e.preventDefault()
       deferredPrompt = e as BeforeInstallPromptEvent
-      showInstallPrompt.value = true
+      console.log('beforeinstallprompt fired, ready to install')
     })
   }
 
-  // Listen for the app being installed
+  // Listen for app installed
   window.addEventListener('appinstalled', () => {
-    console.log('PWA was installed')
+    console.log('PWA installed')
     showInstallPrompt.value = false
     showIOSBanner.value = false
     deferredPrompt = null

@@ -20,8 +20,12 @@
             prepend-icon="mdi-check-circle"
             class="collection-chip"
           >
-            You have collected {{ todaysCollections }} portion{{ todaysCollections > 1 ? 's' : '' }}
-            today
+            <span class="chip-text">
+              You have collected {{ todaysCollections }} portion{{
+                todaysCollections > 1 ? 's' : ''
+              }}
+              today
+            </span>
           </v-chip>
         </div>
 
@@ -177,6 +181,10 @@ const {
   .collection-chip {
     font-size: 0.9rem !important; /* smaller font */
     padding: 6px 12px !important; /* smaller padding */
+    line-height: 1.3;
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: center;
   }
 
   .collection-chip v-icon {
