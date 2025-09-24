@@ -63,7 +63,7 @@ const signInWithMicrosoft = async () => {
           <div class="welcome-section mb-8">
             <h2 class="welcome-title mb-4">Welcome</h2>
             <p class="welcome-subtitle">
-              Sign in with your Windows ID to access meal your check-in app
+              Sign in with your Windows ID to access meal check-in app
             </p>
           </div>
 
