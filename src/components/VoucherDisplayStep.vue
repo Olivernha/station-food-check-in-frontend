@@ -15,6 +15,31 @@
         </div>
       </div>
 
+      <!-- Amount Details Card -->
+      <v-card
+        class="mb-6 amount-details-card fade-in-up"
+        rounded="xl"
+        elevation="4"
+        variant="outlined"
+      >
+        <v-card-text class="pa-6">
+          <div class="text-center">
+            <div class="text-subtitle-1 text-grey-darken-2 mb-4">Payment Details</div>
+            <div class="d-flex justify-space-between align-center mb-3">
+              <span class="text-body-1">Portions:</span>
+              <span class="text-h6 font-weight-bold">{{ totalPortions }}</span>
+            </div>
+            <v-divider class="my-3"></v-divider>
+            <div class="d-flex justify-space-between align-center">
+              <span class="text-h6 font-weight-bold">Total Amount:</span>
+              <span class="text-h4 font-weight-bold text-success total-amount">
+                ${{ totalAmount.toFixed(2) }}
+              </span>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+
       <v-divider class="mb-6 divider-animate"></v-divider>
 
       <!-- Action Buttons -->
@@ -51,7 +76,6 @@
   </v-container>
 </template>
 
-
 <script setup lang="ts">
 interface UserDetail {
   label: string
@@ -60,6 +84,7 @@ interface UserDetail {
 
 interface Props {
   totalPortions: number
+  totalAmount: number
   userDetails: UserDetail[]
   isLoading: boolean
 }
@@ -90,67 +115,6 @@ defineEmits<{
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
-  }
-}
-
-.voucher-header {
-  animation: voucherSlide 0.8s ease-out;
-  border-radius: 16px;
-  margin-bottom: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.voucher-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
-@keyframes voucherSlide {
-  0% {
-    opacity: 0;
-    transform: translateY(-40px) rotateX(-15deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) rotateX(0deg);
-  }
-}
-
-.bounce-in {
-  animation: bounceIn 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-@keyframes bounceIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.3) rotate(-20deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.1) rotate(10deg);
-  }
-  70% {
-    transform: scale(0.9) rotate(-5deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
   }
 }
 
@@ -235,9 +199,33 @@ defineEmits<{
   animation-delay: 0.7s;
 }
 
+.amount-details-card {
+  animation-delay: 0.9s;
+  transition: all 0.3s ease;
+}
+
+.amount-details-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+.total-amount {
+  animation: totalPulse 2s ease-in-out infinite;
+}
+
+@keyframes totalPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
 .divider-animate {
   animation: dividerExpand 0.8s ease-out;
-  animation-delay: 0.9s;
+  animation-delay: 1.1s;
   transform: scaleX(0);
   transform-origin: center;
 }
@@ -250,48 +238,6 @@ defineEmits<{
   100% {
     transform: scaleX(1);
     opacity: 1;
-  }
-}
-
-.detail-row {
-  animation: slideInLeft 0.6s ease-out forwards;
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-@keyframes slideInLeft {
-  0% {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.detail-label {
-  transition: color 0.3s ease;
-}
-
-.detail-value {
-  transition: all 0.3s ease;
-}
-
-.detail-row:hover .detail-value {
-  transform: scale(1.05);
-  color: rgb(var(--v-theme-primary));
-}
-
-
-
-@keyframes iconPulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
   }
 }
 
@@ -317,9 +263,4 @@ defineEmits<{
   transform: scale(1.02) translateY(-2px);
   box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
 }
-
-.voucher-icon {
-  filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3));
-}
-
 </style>

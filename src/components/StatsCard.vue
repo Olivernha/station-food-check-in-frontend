@@ -17,7 +17,7 @@
       </div>
 
       <v-row class="mt-2">
-        <v-col v-for="stat in stats" :key="stat.label" cols="6" class="text-center">
+        <v-col v-for="stat in stats" :key="stat.label" cols="4" class="text-center">
           <div :class="statNumberClass">{{ stat.value }}</div>
           <div class="text-caption text-grey-darken-1 text-uppercase font-weight-medium">
             {{ stat.label }}
@@ -44,7 +44,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  statNumberClass: 'text-h2 font-weight-bold text-grey-darken-2 mb-1',
+  statNumberClass: 'text-h4 font-weight-bold text-grey-darken-2 mb-1',
   elevation: 0,
 })
 </script>

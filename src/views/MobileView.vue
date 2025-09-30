@@ -29,36 +29,57 @@
           key="portions"
           v-model:portions="portionsToCollect"
           :is-loading="isLoading"
-          @submit="submitCollection"
+          @submit="submitPortionSelection"
+        />
+
+        <AmountSelectionStep
+          v-else-if="currentStep === 4"
+          key="amount"
+          :portions="portionsToCollect"
+          :is-loading="isLoading"
+          @submit="submitAmountSelection"
+          @back="goBackToPortions"
         />
 
         <VoucherDisplayStep
-          v-else-if="currentStep === 4"
+          v-else-if="currentStep === 5"
           key="voucher"
           :total-portions="portionsToCollect"
+          :total-amount="totalAmount"
           :user-details="userDetails"
           :is-loading="isLoading"
           @complete="completeCollection"
-          @cancel="currentStep = 3"
+          @cancel="goBackToAmount"
         />
 
         <CompletionStep
-          v-else-if="currentStep === 5"
+          v-else-if="currentStep === 6"
           key="complete"
-          :currentPortion="portionsToCollect"
+          :current-portion="portionsToCollect"
+          :total-amount="totalAmount"
           :detailed-date-time="detailedDateTime"
           @go-home="goHome"
         />
       </transition>
     </v-main>
+
+    <!-- Offline submission notification -->
+    <v-snackbar v-model="showOfflineNotification" :timeout="5000" color="warning" location="bottom">
+      <div class="d-flex align-center">
+        <v-icon class="mr-2">mdi-cloud-off-outline</v-icon>
+        <span>Meal saved locally. Will sync when online.</span>
+      </div>
+    </v-snackbar>
   </v-app>
 </template>
+
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import logo from '@/assets/img/tuaslogo.png'
 import AppHeader from '../components/AppHeader.vue'
 import ReadyToCollectStep from '../components/ReadyToCollectStep.vue'
 import PortionSelectionStep from '../components/PortionSelectionStep.vue'
+import AmountSelectionStep from '../components/AmountSelectionStep.vue'
 import VoucherDisplayStep from '../components/VoucherDisplayStep.vue'
 import CompletionStep from '../components/CompletionStep.vue'
 import { useAuthStore } from '../stores/auth'
@@ -70,8 +91,10 @@ const mealStore = useMealStore()
 // State management
 const currentStep = ref(2)
 const portionsToCollect = ref(1)
+const totalAmount = ref(8.0)
 const isLoading = ref(false)
 const transitionName = ref('slide-right')
+const showOfflineNotification = ref(false) // Add this for offline notification
 
 // Get user info from auth store
 const userName = computed(() => authStore.user?.displayName || 'User')
@@ -132,37 +155,67 @@ const collectMeal = async () => {
   }
 }
 
-const submitCollection = async () => {
+const submitPortionSelection = async () => {
   isLoading.value = true
   transitionName.value = 'slide-right'
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1200))
-    currentStep.value = 4
+    await new Promise((resolve) => setTimeout(resolve, 800))
+    currentStep.value = 4 // Go to amount selection step
   } finally {
     isLoading.value = false
   }
 }
 
+const submitAmountSelection = async (data: { totalAmount: number }) => {
+  isLoading.value = true
+  transitionName.value = 'slide-right'
+  try {
+    // Store the total amount
+    totalAmount.value = data.totalAmount
+
+    await new Promise((resolve) => setTimeout(resolve, 800))
+    currentStep.value = 5 // Go to voucher display
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const goBackToPortions = () => {
+  transitionName.value = 'slide-left'
+  currentStep.value = 3
+}
+
+const goBackToAmount = () => {
+  transitionName.value = 'slide-left'
+  currentStep.value = 4
+}
+
 const completeCollection = async () => {
   isLoading.value = true
   transitionName.value = 'slide-right'
-  console.log('authStore' + authStore.user)
+  console.log('authStore', authStore.user)
   try {
-    // Save meal collection data using the meal store
+    // Save meal collection data using the meal store with total amount only
     const success = await mealStore.saveMealCollection(
       authStore.user?.displayName || 'Unknown User',
       authStore.user?.entraAd || 'unknown',
       authStore.user?.department || 'Operations',
       portionsToCollect.value,
       authStore.user?.entity || 'unknown',
+      totalAmount.value,
     )
+
+    // Show notification if meal was saved offline
+    if (!mealStore.isOnline) {
+      showOfflineNotification.value = true
+    }
 
     if (!success) {
       console.error('Failed to save meal collection')
     }
 
     await new Promise((resolve) => setTimeout(resolve, 800))
-    currentStep.value = 5
+    currentStep.value = 6 // Go to completion step
   } finally {
     isLoading.value = false
   }
@@ -171,10 +224,10 @@ const completeCollection = async () => {
 const goHome = () => {
   transitionName.value = 'slide-left'
   currentStep.value = 2
+  // Reset all values
   portionsToCollect.value = 1
+  totalAmount.value = 8.0
 }
-
-// Initialize meal store data when component mounts
 </script>
 
 <style scoped>

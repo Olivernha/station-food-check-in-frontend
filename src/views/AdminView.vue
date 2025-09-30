@@ -12,7 +12,7 @@
       :icon-size="24"
       header-class="px-6"
       justify="start"
-      title-class="text-h6 font-weight-medium text-white"
+      title-class="font-weight-medium text-white"
       subtitle-class="text-caption text-grey-lighten-2"
     />
 
@@ -42,7 +42,7 @@
               :stats="summaryStats"
               title-icon="mdi-chart-box-outline"
               :date-text="currentDate"
-              stat-number-class="text-h2 font-weight-bold text-grey-darken-2 mb-1"
+              stat-number-class="text-h3 font-weight-bold text-grey-darken-2 mb-1"
               elevation="1"
               class="mb-4"
             />
@@ -143,6 +143,7 @@ interface Staff {
   name: string
   entraadname: string
   portions: number
+  price: number
   checkinTime?: string
   records: any[]
 }
@@ -153,14 +154,17 @@ interface Department {
   entity: string
   staff: Staff[]
   totalPortions: number
+  totalPrice: number
   staff_count: number
   record_count: number
+  record_price: number
 }
 
 interface ReportData {
   date: string
   total_record_count: number
   total_unique_staff: number
+  total_price: number
   departments: any[]
 }
 
@@ -190,6 +194,10 @@ const summaryStats = computed(() => [
     label: 'Total Portions',
     value: reportData.value?.total_record_count || 0,
   },
+  {
+    label: 'Total Price',
+    value: reportData.value?.total_price ? `$${reportData.value.total_price.toFixed(2)}` : '$0.00',
+  },
 ])
 
 // Transform backend data to frontend format
@@ -205,9 +213,14 @@ const transformedDepartments = computed((): Department[] => {
       if (dept.records && Array.isArray(dept.records)) {
         dept.records.forEach((employeeRecord: any) => {
           if (employeeRecord.records && employeeRecord.records.length > 0) {
-            // Sum portions from all meal_count values
+            // Sum portions and price from all meal_count values
             const totalPortions = employeeRecord.records.reduce(
               (sum: number, r: any) => sum + (r.meal_count || 0),
+              0,
+            )
+
+            const totalPrice = employeeRecord.records.reduce(
+              (sum: number, r: any) => sum + (r.price || 0),
               0,
             )
 
@@ -217,6 +230,7 @@ const transformedDepartments = computed((): Department[] => {
                 name: employeeRecord.fullname || 'Unknown',
                 entraadname: employeeRecord.entraadname || 'unknown',
                 portions: totalPortions,
+                price: totalPrice,
                 checkinTime: employeeRecord.records[0].datetime || 'N/A',
                 records: employeeRecord.records || [],
               })
@@ -231,8 +245,10 @@ const transformedDepartments = computed((): Department[] => {
         entity: dept.entity,
         staff,
         totalPortions: staff.reduce((sum, s) => sum + s.portions, 0), // sum of all meal counts
+        totalPrice: staff.reduce((sum, s) => sum + s.price, 0), // sum of all prices
         staff_count: dept.staff_count || staff.length,
         record_count: dept.record_count || 0,
+        record_price: dept.record_price || 0,
       }
     })
     .filter((dept) => dept.staff.length > 0)
@@ -281,6 +297,7 @@ const fetchReportData = async () => {
         date: selectedDate.value,
         total_record_count: 0,
         total_unique_staff: 0,
+        total_price: 0,
         departments: [],
       }
     }

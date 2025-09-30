@@ -2,15 +2,23 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import apiClient from '@/services/api' // Adjust path as needed
+import {
+  saveMealForOfflineSubmission,
+  getPendingMeals,
+  removePendingMeal,
+  registerMealSync,
+  isBackgroundSyncSupported
+} from '@/services/offlineService' // Add this import
 
 // Interfaces
 export interface MealCollection {
-  id?: string
+  id?: string | number
   deptname: string
   fullname: string
   entraadname: string
   count: number
   entity: string
+  price: number
   timestamp?: string
 }
 
@@ -31,10 +39,16 @@ export interface ReportData {
 export const useMealStore = defineStore('meal', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const isOnline = ref(navigator.onLine) // Add online status tracking
 
   // Utility to clear error state
   const clearError = () => {
     error.value = null
+  }
+
+  // Update online status
+  const updateOnlineStatus = () => {
+    isOnline.value = navigator.onLine
   }
 
   // Generic API handler
@@ -76,21 +90,69 @@ export const useMealStore = defineStore('meal', () => {
     deptname: string,
     portionCount: number,
     entity: string,
+    totalAmount: number,
   ): Promise<boolean> => {
+    // Ensure totalAmount is a number and round it to 2 decimal places
+    const roundedTotalAmount = parseFloat(totalAmount.toFixed(2));
+
     const mealCollection: MealCollection = {
       fullname,
       entraadname: entraAD,
       deptname,
       count: portionCount,
       entity,
+      price: roundedTotalAmount, // Use the rounded value
       timestamp: new Date().toISOString(),
     }
 
+    // If offline, save to IndexedDB and register for sync
+    if (!isOnline.value) {
+      const saved = await saveMealForOfflineSubmission(mealCollection)
+      if (saved) {
+        // Try to register background sync if supported
+        if (isBackgroundSyncSupported()) {
+          await registerMealSync()
+        }
+        return true
+      }
+      return false
+    }
+
+    // If online, try to submit immediately
     try {
       await callApi('/mobile/submit_meal_check_in', mealCollection)
       return true
-    } catch {
+    } catch (err: any) {
+      // If submission fails, save for later
+      const saved = await saveMealForOfflineSubmission(mealCollection)
+      if (saved) {
+        // Try to register background sync if supported
+        if (isBackgroundSyncSupported()) {
+          await registerMealSync()
+        }
+        return true
+      }
       return false
+    }
+  }
+
+  // Process pending meals when coming back online
+  const processPendingMeals = async (): Promise<void> => {
+    if (!isOnline.value) return
+
+    const pendingMeals = await getPendingMeals()
+
+    for (const meal of pendingMeals) {
+      try {
+        await callApi('/mobile/submit_meal_check_in', meal)
+        // If successful, remove from pending
+        if (meal.id && typeof meal.id === 'number') {
+          await removePendingMeal(meal.id)
+        }
+      } catch (error) {
+        console.error('Failed to submit pending meal:', error)
+        // Keep in pending for next attempt
+      }
     }
   }
 
@@ -151,14 +213,18 @@ export const useMealStore = defineStore('meal', () => {
 
     return exportReport(endpoint, date, departments)
   }
+
   return {
     isLoading,
     error,
+    isOnline,
     clearError,
+    updateOnlineStatus,
 
     // Mobile
     getTodayMealCount,
     saveMealCollection,
+    processPendingMeals,
 
     // Admin
     getReportDataByDate,

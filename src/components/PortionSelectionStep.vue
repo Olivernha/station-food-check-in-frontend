@@ -50,7 +50,7 @@
         @click="$emit('submit')"
       >
         <v-icon start size="24">mdi-check</v-icon>
-        {{ isLoading ? 'Confirming...' : 'Confirm' }}
+        {{ isLoading ? 'Continuing...' : 'Continue' }}
       </v-btn>
     </div>
   </v-container>

@@ -5,7 +5,9 @@
       class="bg-blue-grey-darken-3 text-white pa-3 d-flex justify-space-between align-center"
     >
       <span class="text-body-1 font-weight-medium">{{ department.name }}</span>
-      <span class="text-caption">Total: {{ department.totalPortions }} portions</span>
+      <div class="text-caption">
+        Total: {{ department.totalPortions }} portions | ${{ department.totalPrice.toFixed(2) }}
+      </div>
     </v-card-title>
 
     <!-- Staff List -->
@@ -45,7 +47,8 @@
                   class="font-weight-medium"
                   variant="flat"
                 >
-                  {{ staff.portions }}
+                  {{ staff.portions }} portion{{ staff.portions > 1 ? 's' : '' }}
+                  (${{ staff.price.toFixed(2) }})
                 </v-chip>
               </div>
             </template>
@@ -72,7 +75,6 @@
                     >
                       <div class="d-flex justify-space-between align-center">
                         <div>
-
                           <div class="text-caption text-grey">
                             {{ formatDateTime(record.datetime) }}
                           </div>
@@ -83,8 +85,7 @@
                           text-color="green-darken-3"
                           variant="flat"
                         >
-
-                          {{ record.meal_count }}
+                          {{ record.meal_count }} portion{{ record.meal_count > 1 ? 's' : '' }} (${{ record.price.toFixed(2) }})
                         </v-chip>
                       </div>
                     </v-card>
@@ -92,7 +93,14 @@
 
                   <!-- Summary Stats -->
                   <v-divider class="my-3"></v-divider>
-
+                  <div class="d-flex justify-space-between text-body-2 font-weight-medium">
+                    <span>Total Portions:</span>
+                    <span>{{ staff.portions }}</span>
+                  </div>
+                  <div class="d-flex justify-space-between text-body-2 font-weight-medium">
+                    <span>Total Price:</span>
+                    <span>${{ staff.price.toFixed(2) }}</span>
+                  </div>
                 </v-card-text>
               </v-card>
             </div>
@@ -109,12 +117,14 @@ import { ref } from 'vue'
 interface MealRecord {
   datetime: string
   meal_count: number
+  price: number
 }
 
 interface Staff {
   id: number
   name: string
   portions: number
+  price: number
   checkinTime?: string
   records?: MealRecord[] // Array of meal record objects
 }
@@ -123,6 +133,7 @@ interface Department {
   name: string
   staff: Staff[]
   totalPortions: number
+  totalPrice: number
 }
 
 interface Props {
@@ -131,7 +142,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  elevation: 0,
+  elevation: 0
 })
 
 // Track expanded staff
@@ -170,7 +181,7 @@ const formatCheckinDateTime = (time?: string): string => {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: true,
+    hour12: true
   })
 }
 
@@ -184,11 +195,9 @@ const formatDateTime = (timeString?: string): string => {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: true,
+    hour12: true
   })
 }
-
-
 </script>
 
 <style scoped>

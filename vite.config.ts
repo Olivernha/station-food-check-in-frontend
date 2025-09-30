@@ -14,6 +14,22 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,vue,txt,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/.*\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 5 * 60, // 5 minutes
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'safari-pinned-tab.svg'],
       manifest: {
@@ -45,6 +61,11 @@ export default defineConfig({
           },
         ],
       },
+      devOptions: {
+        enabled: true,
+      },
+      srcDir: 'src',
+      filename: 'sw.ts',
     }),
   ],
   resolve: {
