@@ -6,7 +6,8 @@
       <p class="text-h6 fade-in-up secondary-text">
         Total amount for {{ portions }} portion{{ portions > 1 ? 's' : '' }}
       </p>
-      <p class="text-body-2 font-weight-bold max-limit">max $8 per portion</p>
+      <p class="text-body-2 font-weight-bold max-limit">max ${{ DEFAULT_MEAL_FEE }} per portion</p>
+
       <div class="d-flex align-center justify-center my-9 scale-in amount-selector">
         <v-btn
           icon="mdi-minus"
@@ -23,7 +24,7 @@
             type="number"
             step="0.01"
             min="0.01"
-            :max="portions * 8.0"
+            :max="maxTotal"
             variant="outlined"
             hide-details
             class="amount-input"
@@ -42,7 +43,7 @@
           color="grey-lighten-1"
           class="ms-4 button-hover plus-btn"
           @click="increaseAmount"
-          :disabled="parseFloat(totalAmount) >= portions * 8.0 || isLoading"
+          :disabled="parseFloat(totalAmount) >= maxTotal || isLoading"
         />
       </div>
 
@@ -59,7 +60,7 @@
             color="success"
             class="adjust-amount-btn"
             @click="quickAdd(0.1)"
-            :disabled="parseFloat(totalAmount) + 0.1 > portions * 8.0 || isLoading"
+            :disabled="parseFloat(totalAmount) + 0.1 > maxTotal || isLoading"
             clickable
             >+0.10</v-chip
           >
@@ -69,7 +70,7 @@
             color="primary"
             class="adjust-amount-btn"
             @click="quickAdd(0.5)"
-            :disabled="parseFloat(totalAmount) + 0.5 > portions * 8.0 || isLoading"
+            :disabled="parseFloat(totalAmount) + 0.5 > maxTotal || isLoading"
             clickable
             >+0.50</v-chip
           >
@@ -79,7 +80,7 @@
             color="orange"
             class="adjust-amount-btn"
             @click="quickAdd(1.0)"
-            :disabled="parseFloat(totalAmount) + 1.0 > portions * 8.0 || isLoading"
+            :disabled="parseFloat(totalAmount) + 1.0 > maxTotal || isLoading"
             clickable
             >+1</v-chip
           >
@@ -174,21 +175,23 @@ const emit = defineEmits<{
   back: []
 }>()
 
+
+const DEFAULT_MEAL_FEE = Number(import.meta.env.VITE_DEFAULT_MEAL_FEE) || 8
+
 // Local state
-const totalAmount = ref((8.0 * props.portions).toFixed(2)) // Default $8.00 per portion
+const totalAmount = ref((DEFAULT_MEAL_FEE * props.portions).toFixed(2))
 
 // Computed properties
+const maxTotal = computed(() => props.portions * DEFAULT_MEAL_FEE)
 const isValidAmount = computed(() => {
   const total = parseFloat(totalAmount.value)
-  const maxTotal = props.portions * 8.0
-  return total >= 0.01 && total <= maxTotal && !isNaN(total)
+  return total >= 0.01 && total <= maxTotal.value && !isNaN(total)
 })
 
 // Methods
 const increaseAmount = () => {
   const current = parseFloat(totalAmount.value) || 0
-  const maxTotal = props.portions * 8.0
-  const newAmount = Math.min(maxTotal, current + 0.5)
+  const newAmount = Math.min(maxTotal.value, current + 0.5)
   totalAmount.value = newAmount.toFixed(2)
 }
 
@@ -200,33 +203,22 @@ const decreaseAmount = () => {
 
 const quickAdd = (amount: number) => {
   const current = parseFloat(totalAmount.value) || 0
-  const maxTotal = props.portions * 8.0
   let newAmount = current + amount
-
-  // Clamp between 0.01 and maxTotal
   if (newAmount < 0.01) newAmount = 0.01
-  if (newAmount > maxTotal) newAmount = maxTotal
-
+  if (newAmount > maxTotal.value) newAmount = maxTotal.value
   totalAmount.value = newAmount.toFixed(2)
 }
 
 const validateAmount = () => {
   const amount = parseFloat(totalAmount.value)
-  const maxTotal = props.portions * 8.0
-  if (isNaN(amount) || amount < 0.01) {
-    totalAmount.value = '0.01'
-  } else if (amount > maxTotal) {
-    totalAmount.value = maxTotal.toFixed(2)
-  } else {
-    totalAmount.value = amount.toFixed(2)
-  }
+  if (isNaN(amount) || amount < 0.01) totalAmount.value = '0.01'
+  else if (amount > maxTotal.value) totalAmount.value = maxTotal.value.toFixed(2)
+  else totalAmount.value = amount.toFixed(2)
 }
 
 const handleSubmit = () => {
   if (isValidAmount.value) {
-    emit('submit', {
-      totalAmount: parseFloat(totalAmount.value),
-    })
+    emit('submit', { totalAmount: parseFloat(totalAmount.value) })
   }
 }
 </script>

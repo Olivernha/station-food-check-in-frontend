@@ -11,7 +11,6 @@ interface UserInfo {
   department?: string
   id: string
   entity?: string
-
 }
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -181,8 +180,6 @@ export const useAuthStore = defineStore('auth', {
       }
     }
     ,
-
-
     // hasRole(role: string): boolean {
     //   if (!this.userAccount) return false
     //   return false

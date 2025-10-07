@@ -77,7 +77,7 @@ const signInWithMicrosoft = async () => {
             <template v-slot:prepend>
               <v-icon size="24" class="error-icon">mdi-alert-circle</v-icon>
             </template>
-            {{ error }}
+            {{ error }} 
           </v-alert>
 
           <!-- Enhanced Sign-in Button -->
