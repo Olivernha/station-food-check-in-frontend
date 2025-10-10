@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="./src/assets/img/tuaslogo.png" />
+    <link rel="icon" href="/src/assets/img/tuaslogo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- PWA Meta Tags -->
@@ -20,9 +20,18 @@
     <!-- Splash Screen Meta Tags for iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Preload key resources -->
+    <link rel="preload" href="/src/main.ts" as="script" type="application/javascript" />
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+    <!-- Fallback for older browsers -->
+    <script nomodule>
+      console.error('This application requires a modern browser that supports ES modules.')
+      document.getElementById('app').innerHTML =
+        '<p>This application requires a modern browser. Please update your browser.</p>'
+    </script>
   </body>
 </html>

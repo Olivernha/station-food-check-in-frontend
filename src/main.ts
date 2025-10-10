@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { msalInstance } from './services/msal'
 import { useAuthStore } from './stores/auth'
 import { useMealStore } from './stores/mealStore' // Add this import
@@ -17,6 +18,7 @@ async function initializeApp() {
   // Create Vue app and pinia
   const app = createApp(App)
   const pinia = createPinia()
+  pinia.use(piniaPluginPersistedstate) // Add persisted state plugin
 
   app.use(pinia)
   app.use(router)
@@ -55,13 +57,41 @@ initializeApp()
 // PWA Service Worker Registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((registration) => {
+    // Function to register service worker with fallback
+    const registerServiceWorker = async (swPath: string) => {
+      try {
+        const registration = await navigator.serviceWorker.register(swPath)
         console.log('SW registered: ', registration)
-      })
-      .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError)
-      })
+        return registration
+      } catch (error) {
+        console.log(`SW registration failed for ${swPath}: `, error)
+        throw error
+      }
+    }
+
+    // Try to register service worker with different paths
+    const tryRegister = async () => {
+      const pathsToTry = [
+        '/dev-dist/sw.js', // Development path
+        '/sw.js',          // Production path
+        './dev-dist/sw.js',
+        './sw.js'
+      ]
+
+      for (const path of pathsToTry) {
+        try {
+          await registerServiceWorker(path)
+          console.log(`Successfully registered service worker with path: ${path}`)
+          return
+        } catch (error) {
+          console.log(`Failed to register with path ${path}:`, error)
+          continue
+        }
+      }
+
+      console.log('Failed to register service worker with all paths')
+    }
+
+    tryRegister()
   })
 }

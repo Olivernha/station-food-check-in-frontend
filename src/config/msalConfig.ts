@@ -9,7 +9,7 @@ export const msalConfig = {
     navigateToLoginRequestUrl: false,
   },
   cache: {
-    cacheLocation: 'localStorage',
+    cacheLocation: 'localStorage', // Use localStorage to persist tokens
     storeAuthStateInCookie: false,
   },
   system: {
@@ -33,14 +33,12 @@ export const msalConfig = {
 }
 
 export const loginRequest = {
-  scopes: ['User.Read', 'openid', 'profile'],
-  // Remove response_mode for popup flow
-  // extraQueryParameters: {
-  //   response_mode: 'query'
-  // }
+  scopes: ['User.Read', 'openid', 'profile', 'offline_access'],
+  // Request refresh tokens for longer sessions
+  prompt: 'select_account', // Allow user to select account
 }
 
 export const tokenRequest = {
-  scopes: ['User.Read'],
+  scopes: ['User.Read', 'offline_access'],
   account: null,
 }

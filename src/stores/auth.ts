@@ -3,6 +3,7 @@ import { msalInstance } from '../services/msal'
 import { loginRequest } from '../config/msalConfig'
 import type { AccountInfo } from '@azure/msal-browser'
 import apiClient from '@/services/api'
+
 interface UserInfo {
   entraAd: string
   displayName: string
@@ -12,6 +13,7 @@ interface UserInfo {
   id: string
   entity?: string
 }
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     userAccount: null as AccountInfo | null,
@@ -37,7 +39,6 @@ export const useAuthStore = defineStore('auth', {
           this.userAccount = accounts[0]
           this.isAuthenticated = true
           await this.fetchUserProfile()
-
         }
       } catch (error: any) {
         console.error('Auth initialization failed:', error)
@@ -77,7 +78,7 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         await msalInstance.logoutPopup()
-        this.reset()
+        this.$reset()
       } catch (error: any) {
         console.error('Logout failed:', error)
         this.error = error.message || 'Logout failed'
@@ -89,7 +90,6 @@ export const useAuthStore = defineStore('auth', {
         if (!this.userAccount) return null
 
         // Fetch from Microsoft Graph API
-
         const accessToken = await this.getAccessToken()
         const response = await fetch(
           'https://graph.microsoft.com/v1.0/me?$select=displayName,companyName,mail,userPrincipalName,entity,jobTitle,department,id,givenName,surname,officeLocation,surname,preferredLanguage',
@@ -112,15 +112,6 @@ export const useAuthStore = defineStore('auth', {
             entity: profile.companyName,
             entraAd: (profile.mail || profile.userPrincipalName).split('@')[0],
           }
-          // this.user = {
-          //   displayName: 'Edward',
-          //   email: 'edward@tuaspower.com.sg',
-          //   jobTitle: 'security guard',
-          //   department: 'Security',
-          //   id: profile.id,
-          //   entity: profile.companyName,
-          //   entraAd: 'edward@tuaspower.com.sg'.split('@')[0],
-          // }
 
           return this.user
         } else {
@@ -164,6 +155,7 @@ export const useAuthStore = defineStore('auth', {
         }
       }
     },
+
     async checkAdmin(upn: string) {
       try {
         const response = await apiClient.post('/adminaccess/check_access', {
@@ -176,21 +168,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (err: any) {
         console.log('Error checking admin access:', err)
         this.isAdmin = false
-
       }
-    }
-    ,
-    // hasRole(role: string): boolean {
-    //   if (!this.userAccount) return false
-    //   return false
-    // },
-
-    // Reset store to initial state
-    reset() {
-      this.userAccount = null
-      this.user = null
-      this.isAuthenticated = false
-      this.error = null
     },
 
     // Clear error message
@@ -199,10 +177,8 @@ export const useAuthStore = defineStore('auth', {
     },
   },
 
-  // Uncomment if using pinia-plugin-persistedstate
-  // persist: {
-  //   key: 'auth-store',
-  //   storage: localStorage,
-  //   paths: ['isAuthenticated', 'userAccount']
-  // }
+  persist: {
+    key: 'auth-store',
+    storage: localStorage,
+  }
 })

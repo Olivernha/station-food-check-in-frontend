@@ -7,6 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/',
   plugins: [
     vue(),
     vueDevTools(),
@@ -30,6 +31,8 @@ export default defineConfig({
             },
           },
         ],
+        navigateFallback: '/index.html',
+        navigateFallbackAllowlist: [/^\/$/],
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'safari-pinned-tab.svg'],
       manifest: {
@@ -63,6 +66,8 @@ export default defineConfig({
       },
       devOptions: {
         enabled: true,
+        type: 'module',
+        navigateFallback: '/index.html',
       },
       srcDir: 'src',
       filename: 'sw.ts',

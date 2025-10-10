@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
+import { StaleWhileRevalidate } from 'workbox-strategies'
 import { getPendingMeals, removePendingMeal } from './services/offlineService'
 import apiClient from './services/api'
 
@@ -15,10 +16,27 @@ cleanupOutdatedCaches()
 // to allow work offline
 registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
 
+// Handle JavaScript files with proper MIME type
+registerRoute(
+    ({ request }) => request.destination === 'script',
+    new StaleWhileRevalidate({
+        cacheName: 'js-cache',
+    })
+)
+
+// Handle CSS files with proper MIME type
+registerRoute(
+    ({ request }) => request.destination === 'style',
+    new StaleWhileRevalidate({
+        cacheName: 'css-cache',
+    })
+)
+
 // Background sync for meal submissions
-self.addEventListener('sync', (event: SyncEvent) => {
-    if (event.tag === 'meal-submission') {
-        event.waitUntil(processPendingMeals())
+self.addEventListener('sync', (event: Event) => {
+    const syncEvent = event as SyncEvent
+    if (syncEvent.tag === 'meal-submission') {
+        syncEvent.waitUntil(processPendingMeals())
     }
 })
 
