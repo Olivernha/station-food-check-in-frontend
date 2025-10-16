@@ -15,6 +15,9 @@
     />
 
     <v-main class="bg-grey-lighten-4">
+      <!-- Offline Status Bar -->
+      <OfflineStatusBar />
+
       <transition :name="transitionName" mode="out-in">
         <ReadyToCollectStep
           v-if="currentStep === 2"
@@ -63,7 +66,14 @@
       </transition>
     </v-main>
 
-    <!-- Offline submission notification -->
+    <!-- Critical Offline Alert -->
+    <OfflineMealAlert
+      :show="showOfflineAlert"
+      :meal-details="offlineMealDetails"
+      @acknowledge="showOfflineAlert = false"
+    />
+
+    <!-- Offline submission notification (backup) -->
     <v-snackbar v-model="showOfflineNotification" :timeout="5000" color="warning" location="bottom">
       <div class="d-flex align-center">
         <v-icon class="mr-2">mdi-cloud-off-outline</v-icon>
@@ -82,11 +92,15 @@ import PortionSelectionStep from '../components/PortionSelectionStep.vue'
 import AmountSelectionStep from '../components/AmountSelectionStep.vue'
 import VoucherDisplayStep from '../components/VoucherDisplayStep.vue'
 import CompletionStep from '../components/CompletionStep.vue'
+import OfflineMealAlert from '../components/OfflineMealAlert.vue'
+import OfflineStatusBar from '../components/OfflineStatusBar.vue'
 import { useAuthStore } from '../stores/auth'
 import { useMealStore } from '../stores/mealStore'
+import { useOfflineStatus } from '@/composables/useOfflineStatus'
 
 const authStore = useAuthStore()
 const mealStore = useMealStore()
+const { checkPendingMeals } = useOfflineStatus()
 
 // State management
 const currentStep = ref(2)
@@ -94,7 +108,13 @@ const portionsToCollect = ref(1)
 const totalAmount = ref(8.0)
 const isLoading = ref(false)
 const transitionName = ref('slide-right')
-const showOfflineNotification = ref(false) // Add this for offline notification
+const showOfflineNotification = ref(false)
+const showOfflineAlert = ref(false)
+const offlineMealDetails = ref({
+  portions: 1,
+  amount: 8.0,
+  timestamp: new Date(),
+})
 
 // Get user info from auth store
 const userName = computed(() => authStore.user?.displayName || 'User')
@@ -205,14 +225,22 @@ const completeCollection = async () => {
       totalAmount.value,
     )
 
-    // Show notification if meal was saved offline
+    // Show critical alert if meal was saved offline
     if (!mealStore.isOnline) {
-      showOfflineNotification.value = true
+      offlineMealDetails.value = {
+        portions: portionsToCollect.value,
+        amount: totalAmount.value,
+        timestamp: new Date(),
+      }
+      showOfflineAlert.value = true
     }
 
     if (!success) {
       console.error('Failed to save meal collection')
     }
+
+    // Refresh pending meals count after saving
+    await checkPendingMeals()
 
     await new Promise((resolve) => setTimeout(resolve, 800))
     currentStep.value = 6 // Go to completion step
