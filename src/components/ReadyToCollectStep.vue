@@ -1,4 +1,3 @@
-<!-- Updated ReadyToCollectStep Component with Composable -->
 <template>
   <v-container class="fill-height d-flex align-center justify-center">
     <div class="text-center w-100 pa-6 step-container">
@@ -71,11 +70,26 @@
         <v-icon start size="24">mdi-food</v-icon>
         {{ isLoading ? 'Processing...' : 'Collect Meal' }}
       </v-btn>
+
+      <!-- History Button -->
+      <v-btn
+        color="info"
+        variant="tonal"
+        block
+        class="mt-4 fade-in-up history-btn"
+        rounded="xl"
+        @click="goToHistory"
+        size="large"
+      >
+        <v-icon start>mdi-history</v-icon>
+        View Meal History
+      </v-btn>
     </div>
   </v-container>
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useMealCount } from '../composables/useMealCount'
 
 interface Props {
@@ -88,6 +102,8 @@ defineEmits<{
   collectMeal: []
 }>()
 
+const router = useRouter()
+
 // Use the meal count composable
 const {
   todaysCollections,
@@ -95,6 +111,10 @@ const {
   error: mealCountError,
   refreshMealCount,
 } = useMealCount()
+
+const goToHistory = () => {
+  router.push('/history')
+}
 </script>
 
 <style scoped>
@@ -232,6 +252,10 @@ const {
 
 .collect-btn {
   animation-delay: 0.7s;
+}
+
+.history-btn {
+  animation-delay: 0.9s;
 }
 
 @keyframes fadeInUp {

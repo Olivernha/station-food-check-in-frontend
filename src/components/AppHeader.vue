@@ -20,18 +20,48 @@
           </div>
         </v-col>
 
-        <!-- Navigation Button -->
-        <v-col cols="auto" v-if="showAdminButton && isAdmin">
-          <v-btn
-            color="primary"
-            variant="outlined"
-            size="small"
-            class="admin-btn"
-            @click="navigate"
-          >
-            <v-icon start :size="iconSizeSmall">{{ buttonIcon }}</v-icon>
-            {{ buttonText }}
-          </v-btn>
+        <!-- Navigation & Logout Buttons -->
+        <v-col cols="auto">
+          <div class="d-flex flex-column flex-sm-row ga-2">
+            <!-- Navigation Button -->
+            <v-btn
+              v-if="showAdminButton && isAdmin && !isHistoryRoute"
+              color="primary"
+              variant="outlined"
+              size="small"
+              class="admin-btn"
+              @click="navigate"
+            >
+              <v-icon start :size="iconSizeSmall">{{ buttonIcon }}</v-icon>
+              {{ buttonText }}
+            </v-btn>
+
+            <!-- Home Button (for History page) -->
+            <v-btn
+              v-if="isHistoryRoute"
+              color="primary"
+              variant="outlined"
+              size="small"
+              class="home-btn"
+              @click="goHome"
+            >
+              <v-icon start :size="iconSizeSmall">mdi-home</v-icon>
+              Home
+            </v-btn>
+
+            <!-- Logout Button -->
+            <v-btn
+              v-if="showLogoutButton && isAuthenticated"
+              color="error"
+              variant="outlined"
+              size="small"
+              class="logout-btn"
+              @click="handleLogout"
+            >
+              <v-icon start :size="iconSizeSmall">mdi-logout</v-icon>
+              Logout
+            </v-btn>
+          </div>
         </v-col>
       </v-row>
     </v-container>
@@ -68,6 +98,7 @@ interface Props {
     | 'stretch'
   titleAlignment?: string
   showAdminButton?: boolean
+  showLogoutButton?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -85,6 +116,7 @@ withDefaults(defineProps<Props>(), {
   justify: 'start',
   titleAlignment: '',
   showAdminButton: true,
+  showLogoutButton: true,
 })
 
 // Auth store for admin check
@@ -94,9 +126,13 @@ const route = useRoute()
 
 // Computed property for admin status
 const isAdmin = computed(() => authStore.isAdmin)
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+
+// Computed properties for route checks
+const isAdminRoute = computed(() => route.path === '/admin')
+const isHistoryRoute = computed(() => route.path === '/history')
 
 // Computed properties for button text and icon based on current route
-const isAdminRoute = computed(() => route.path === '/admin')
 const buttonText = computed(() => (isAdminRoute.value ? 'Home' : 'Admin'))
 const buttonIcon = computed(() => (isAdminRoute.value ? 'mdi-home' : 'mdi-shield-crown'))
 const iconSizeSmall = computed(() => 16)
@@ -107,6 +143,21 @@ const navigate = () => {
     router.push('/')
   } else {
     router.push('/admin')
+  }
+}
+
+// Method to go home (for History page)
+const goHome = () => {
+  router.push('/')
+}
+
+// Handle logout
+const handleLogout = async () => {
+  try {
+    await authStore.logout()
+    router.push('/login')
+  } catch (error) {
+    console.error('Logout failed:', error)
   }
 }
 </script>
@@ -152,15 +203,51 @@ const navigate = () => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* Home button styling (for History page) */
+.home-btn {
+  font-size: 0.875rem;
+  text-transform: none;
+  opacity: 0.9;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-left: 16px;
+}
+
+.home-btn:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Logout button styling */
+.logout-btn {
+  font-size: 0.875rem;
+  text-transform: none;
+  opacity: 0.9;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-left: 16px;
+}
+
+.logout-btn:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
 /* Mobile responsive adjustments */
 @media (max-width: 600px) {
-  .admin-btn {
+  .admin-btn,
+  .home-btn,
+  .logout-btn {
     font-size: 0.75rem;
     padding: 0 8px !important;
     min-width: auto;
   }
 
-  .admin-btn .v-icon {
+  .admin-btn .v-icon,
+  .home-btn .v-icon,
+  .logout-btn .v-icon {
     font-size: 14px !important;
   }
 }

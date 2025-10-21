@@ -14,6 +14,7 @@
       justify="start"
       title-class="font-weight-medium text-white"
       subtitle-class="text-caption text-grey-lighten-2"
+      :show-logout-button="true"
     />
 
     <v-main class="bg-grey-lighten-5">
@@ -164,7 +165,7 @@ interface ReportData {
   date: string
   total_record_count: number
   total_unique_staff: number
-  total_price: number
+  total_price?: number
   departments: any[]
 }
 
@@ -297,7 +298,6 @@ const fetchReportData = async () => {
         date: selectedDate.value,
         total_record_count: 0,
         total_unique_staff: 0,
-        total_price: 0,
         departments: [],
       }
     }

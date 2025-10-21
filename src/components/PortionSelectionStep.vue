@@ -38,20 +38,37 @@
           :disabled="portions >= 10000 || isLoading"
         />
       </div>
-
-      <v-btn
-        color="success"
-        size="x-large"
-        block
-        rounded="xl"
-        class="py-4 fade-in-up pulse-hover confirm-btn"
-        :loading="isLoading"
-        :disabled="isLoading"
-        @click="$emit('submit')"
-      >
-        <v-icon start size="24">mdi-check</v-icon>
-        {{ isLoading ? 'Continuing...' : 'Continue' }}
-      </v-btn>
+      <v-row class="fade-in-up action-buttons">
+        <v-col cols="12" sm="5" class="px-2">
+          <v-btn
+            variant="outlined"
+            size="large"
+            block
+            rounded="xl"
+            class="py-3 button-hover back-btn"
+            :disabled="isLoading"
+            @click="$emit('back')"
+          >
+            <v-icon start>mdi-arrow-left</v-icon>
+            Back
+          </v-btn>
+        </v-col>
+        <v-col cols="12" sm="7" class="px-2">
+          <v-btn
+            color="success"
+            size="x-large"
+            block
+            rounded="xl"
+            class="py-4 fade-in-up pulse-hover confirm-btn"
+            :loading="isLoading"
+            :disabled="isLoading"
+            @click="$emit('submit')"
+          >
+            <v-icon start size="24">mdi-check</v-icon>
+            {{ isLoading ? 'Continuing...' : 'Continue' }}
+          </v-btn>
+        </v-col>
+      </v-row>
     </div>
   </v-container>
 </template>
@@ -67,6 +84,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:portions': [value: number]
   submit: []
+  back: []
 }>()
 
 const updatePortions = (value: string | number) => {
@@ -262,5 +280,8 @@ const decreasePortion = () => {
 
 .counter-icon {
   filter: drop-shadow(0 4px 8px rgba(33, 150, 243, 0.3));
+}
+.action-buttons {
+  animation-delay: 0.6s;
 }
 </style>

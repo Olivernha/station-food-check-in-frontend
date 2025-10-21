@@ -12,6 +12,7 @@
       :logo-size="60"
       title-class="text-h4 font-weight-bold text-grey-darken-4"
       subtitle-class="text-body-2 text-grey-darken-2 ma-0 font-weight-medium"
+      :show-logout-button="true"
     />
 
     <v-main class="bg-grey-lighten-4">
@@ -33,6 +34,7 @@
           v-model:portions="portionsToCollect"
           :is-loading="isLoading"
           @submit="submitPortionSelection"
+          @back="goBackToReady"
         />
 
         <AmountSelectionStep
@@ -84,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import logo from '@/assets/img/tuaslogo.png'
 import AppHeader from '../components/AppHeader.vue'
 import ReadyToCollectStep from '../components/ReadyToCollectStep.vue'
@@ -208,6 +210,11 @@ const goBackToPortions = () => {
 const goBackToAmount = () => {
   transitionName.value = 'slide-left'
   currentStep.value = 4
+}
+
+const goBackToReady = () => {
+  transitionName.value = 'slide-left'
+  currentStep.value = 2
 }
 
 const completeCollection = async () => {

@@ -10,6 +10,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/history',
+    name: 'History',
+    component: () => import('@/views/HistoryView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/LoginView.vue'),

@@ -22,6 +22,12 @@ export interface MealCollection {
   timestamp?: string
 }
 
+export interface MealHistoryRecord {
+  count: number
+  price: number
+  datetime: string
+}
+
 export interface Department {
   id: string
   name: string
@@ -84,6 +90,32 @@ export const useMealStore = defineStore('meal', () => {
     }
   }
 
+  // Get user meal history
+  const getUserMealHistory = async (
+    entraadname: string,
+    deptname: string,
+    entity: string,
+  ): Promise<MealHistoryRecord[]> => {
+    try {
+      // Calculate date range (last 2 days)
+      const toDate = new Date().toISOString().split('T')[0];
+      const fromDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      const res = await callApi<{ record_history: MealHistoryRecord[] }>('/mobile/get_recent_history_by_user', {
+        entraadname,
+        deptname,
+        entity,
+        from_date: fromDate,
+        to_date: toDate
+      })
+      return res.record_history || []
+    } catch (err: any) {
+      const message = err.response?.data?.error || err.message || 'Failed to fetch meal history'
+      error.value = message
+      throw new Error(message)
+    }
+  }
+
   const saveMealCollection = async (
     fullname: string,
     entraAD: string,
@@ -122,7 +154,8 @@ export const useMealStore = defineStore('meal', () => {
     try {
       await callApi('/mobile/submit_meal_check_in', mealCollection)
       return true
-    } catch (err: any) {
+    } catch (error) {
+      console.error('Error submitting meal collection:', error)
       // If submission fails, save for later
       const saved = await saveMealForOfflineSubmission(mealCollection)
       if (saved) {
@@ -223,6 +256,7 @@ export const useMealStore = defineStore('meal', () => {
 
     // Mobile
     getTodayMealCount,
+    getUserMealHistory,
     saveMealCollection,
     processPendingMeals,
 
