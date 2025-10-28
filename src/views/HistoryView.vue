@@ -12,6 +12,7 @@
       :logo-size="60"
       title-class="text-h4 font-weight-bold text-grey-darken-4"
       subtitle-class="text-body-2 text-grey-darken-2 ma-0 font-weight-medium"
+      :show-logout-button="true"
     />
 
     <v-main class="bg-grey-lighten-3">

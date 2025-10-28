@@ -27,7 +27,7 @@
             <v-btn
               v-if="showAdminButton && isAdmin && !isHistoryRoute"
               color="primary"
-              variant="outlined"
+              variant="elevated"
               size="small"
               class="admin-btn"
               @click="navigate"
@@ -40,7 +40,7 @@
             <v-btn
               v-if="isHistoryRoute"
               color="primary"
-              variant="outlined"
+              variant="elevated"
               size="small"
               class="home-btn"
               @click="goHome"
@@ -53,7 +53,7 @@
             <v-btn
               v-if="showLogoutButton && isAuthenticated"
               color="error"
-              variant="outlined"
+              variant="elevated"
               size="small"
               class="logout-btn"
               @click="handleLogout"
@@ -195,12 +195,17 @@ const handleLogout = async () => {
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-left: 16px;
+  font-weight: 600;
+  animation: subtle-pulse 2s infinite;
 }
 
 .admin-btn:hover {
   opacity: 1;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background-color: rgb(var(--v-theme-primary)) !important;
+  color: white !important;
+  animation: none;
 }
 
 /* Home button styling (for History page) */
@@ -211,12 +216,17 @@ const handleLogout = async () => {
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-left: 16px;
+  font-weight: 600;
+  animation: subtle-pulse 2s infinite;
 }
 
 .home-btn:hover {
   opacity: 1;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background-color: rgb(var(--v-theme-primary)) !important;
+  color: white !important;
+  animation: none;
 }
 
 /* Logout button styling */
@@ -227,12 +237,28 @@ const handleLogout = async () => {
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-left: 16px;
+  font-weight: 600;
+  animation: subtle-pulse 2s infinite;
 }
 
 .logout-btn:hover {
   opacity: 1;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background-color: #ff5252 !important; /* Make it more vibrant on hover */
+  animation: none;
+}
+
+@keyframes subtle-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Mobile responsive adjustments */

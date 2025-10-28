@@ -187,6 +187,9 @@ export const useMealStore = defineStore('meal', () => {
         // Keep in pending for next attempt
       }
     }
+
+    // Dispatch a custom event to notify UI components
+    window.dispatchEvent(new CustomEvent('mealSyncComplete'));
   }
 
   // Admin Functions

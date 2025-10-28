@@ -1,38 +1,53 @@
+import 'vuetify/styles'
+import '@mdi/font/css/materialdesignicons.css'
 import { createApp } from 'vue'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-import { msalInstance } from './services/msal'
-import { useAuthStore } from './stores/auth'
-import { useMealStore } from './stores/mealStore' // Add this import
 import App from './App.vue'
 import router from './router'
-import vuetify from './plugins/vuetify'
+import { useMealStore } from './stores/mealStore'
+import { useOfflineStatus } from './composables/useOfflineStatus'
+import { msalInstance } from './services/msal'
+import { useAuthStore } from './stores/auth'
 
-async function initializeApp() {
-  console.log('Starting MSAL initialization...')
+// Vuetify setup
+const vuetify = createVuetify({
+  components,
+  directives,
+  theme: {
+    defaultTheme: 'light',
+  },
+})
 
-  // Initialize MSAL first
-  await msalInstance.initialize()
-  console.log('MSAL initialized successfully')
+// Pinia setup
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
 
-  // Create Vue app and pinia
+// App initialization
+const initializeApp = async () => {
+  try {
+    // Initialize MSAL before anything else
+    await msalInstance.initialize()
+    console.log('MSAL initialized successfully')
+  } catch (error) {
+    console.error('MSAL initialization failed:', error)
+  }
+
   const app = createApp(App)
-  const pinia = createPinia()
-  pinia.use(piniaPluginPersistedstate) // Add persisted state plugin
-
   app.use(pinia)
   app.use(router)
   app.use(vuetify)
 
-  // Now initialize auth store
-  console.log('Initializing auth store...')
-  const authStore = useAuthStore()
-  await authStore.initialize()
-  console.log('Auth store initialized successfully')
-
   // Mount the app
   app.mount('#app')
   console.log('App mounted successfully')
+
+  // Initialize auth store
+  const authStore = useAuthStore()
+  await authStore.initialize()
 
   // Initialize meal store and set up online/offline listeners
   const mealStore = useMealStore()
@@ -49,6 +64,15 @@ async function initializeApp() {
     console.log('App is now offline')
     mealStore.updateOnlineStatus()
   })
+
+  // Listen for messages from service worker
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'MEAL_SYNC_COMPLETE') {
+      console.log('Meal sync completed, updating UI');
+      // Refresh the pending meals count
+      useOfflineStatus().checkPendingMeals();
+    }
+  });
 }
 
 // Start the initialization

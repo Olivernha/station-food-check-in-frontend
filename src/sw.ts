@@ -18,51 +18,61 @@ registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
 
 // Handle JavaScript files with proper MIME type
 registerRoute(
-    ({ request }) => request.destination === 'script',
-    new StaleWhileRevalidate({
-        cacheName: 'js-cache',
-    })
+  ({ request }) => request.destination === 'script',
+  new StaleWhileRevalidate({
+    cacheName: 'js-cache',
+  })
 )
 
 // Handle CSS files with proper MIME type
 registerRoute(
-    ({ request }) => request.destination === 'style',
-    new StaleWhileRevalidate({
-        cacheName: 'css-cache',
-    })
+  ({ request }) => request.destination === 'style',
+  new StaleWhileRevalidate({
+    cacheName: 'css-cache',
+  })
 )
 
 // Background sync for meal submissions
 self.addEventListener('sync', (event: Event) => {
-    const syncEvent = event as SyncEvent
-    if (syncEvent.tag === 'meal-submission') {
-        syncEvent.waitUntil(processPendingMeals())
-    }
+  const syncEvent = event as SyncEvent
+  if (syncEvent.tag === 'meal-submission') {
+    syncEvent.waitUntil(processPendingMeals())
+  }
 })
 
 // Process pending meals
 async function processPendingMeals(): Promise<void> {
-    try {
-        const pendingMeals = await getPendingMeals()
+  try {
+    const pendingMeals = await getPendingMeals()
 
-        // Process each pending meal
-        for (const meal of pendingMeals) {
-            try {
-                // Submit meal to backend
-                await apiClient.post('/mobile/submit_meal_check_in', meal)
+    // Process each pending meal
+    for (const meal of pendingMeals) {
+      try {
+        // Submit meal to backend
+        await apiClient.post('/mobile/submit_meal_check_in', meal)
 
-                // If successful, remove from pending
-                if (meal.id && typeof meal.id === 'number') {
-                    await removePendingMeal(meal.id)
-                }
-            } catch (error) {
-                console.error('Failed to submit meal during background sync:', error)
-                // Keep in pending for next sync attempt
-            }
+        // If successful, remove from pending
+        if (meal.id && typeof meal.id === 'number') {
+          await removePendingMeal(meal.id)
         }
-    } catch (error) {
-        console.error('Error processing pending meals:', error)
+      } catch (error) {
+        console.error('Failed to submit meal during background sync:', error)
+        // Keep in pending for next sync attempt
+      }
     }
+
+    // Notify clients that sync is complete
+    self.clients.matchAll().then(clients => {
+      clients.forEach(async client => {
+        client.postMessage({
+          type: 'MEAL_SYNC_COMPLETE',
+          pendingMealsCount: (await getPendingMeals()).length
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error processing pending meals:', error)
+  }
 }
 
 export type { }
