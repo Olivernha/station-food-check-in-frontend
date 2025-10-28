@@ -1,9 +1,5 @@
-import 'vuetify/styles'
-import '@mdi/font/css/materialdesignicons.css'
+import vuetify from './plugins/vuetify'
 import { createApp } from 'vue'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import App from './App.vue'
@@ -13,14 +9,7 @@ import { useOfflineStatus } from './composables/useOfflineStatus'
 import { msalInstance } from './services/msal'
 import { useAuthStore } from './stores/auth'
 
-// Vuetify setup
-const vuetify = createVuetify({
-  components,
-  directives,
-  theme: {
-    defaultTheme: 'light',
-  },
-})
+
 
 // Pinia setup
 const pinia = createPinia()
