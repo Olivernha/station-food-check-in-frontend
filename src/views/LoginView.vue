@@ -46,6 +46,7 @@ const signInWithMicrosoft = async () => {
       :logo-src="logo"
       logo-alt="Logo"
       :logo-size="60"
+      :show-logout-button="false"
     />
     <v-main class="bg-grey-lighten-4">
       <v-container class="fill-height d-flex align-center justify-center pa-4 pa-md-6">
@@ -77,7 +78,7 @@ const signInWithMicrosoft = async () => {
             <template v-slot:prepend>
               <v-icon size="24" class="error-icon">mdi-alert-circle</v-icon>
             </template>
-            {{ error }} 
+            {{ error }}
           </v-alert>
 
           <!-- Enhanced Sign-in Button -->
