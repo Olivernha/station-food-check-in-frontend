@@ -23,14 +23,27 @@
         </div>
       </div>
 
-      <v-btn
-        v-if="!isOnline"
-        icon="mdi-information"
-        size="small"
-        variant="text"
-        color="orange-darken-2"
-        @click="showInfoDialog = true"
-      />
+      <div class="d-flex align-center">
+        <!-- Debug sync button (temporary) -->
+        <v-btn
+          v-if="isOnline && pendingMealsCount > 0"
+          icon="mdi-sync"
+          size="small"
+          variant="text"
+          color="orange-darken-2"
+          @click="handleDebugSync"
+          class="mr-1"
+        />
+
+        <v-btn
+          v-if="!isOnline"
+          icon="mdi-information"
+          size="small"
+          variant="text"
+          color="orange-darken-2"
+          @click="showInfoDialog = true"
+        />
+      </div>
     </div>
   </v-banner>
 
@@ -70,9 +83,14 @@ import { computed, ref } from 'vue'
 import { useOfflineStatus } from '@/composables/useOfflineStatus'
 import { useMealStore } from '@/stores/mealStore'
 
-const { isOnline, pendingMealsCount } = useOfflineStatus()
+const { isOnline, pendingMealsCount, debugSync } = useOfflineStatus()
 const mealStore = useMealStore()
 const showInfoDialog = ref(false)
+
+const handleDebugSync = async () => {
+  console.log('🔄 Manual sync button clicked')
+  await debugSync()
+}
 
 const showStatusBar = computed(() => {
   return !isOnline.value || pendingMealsCount.value > 0 || mealStore.isSyncing
