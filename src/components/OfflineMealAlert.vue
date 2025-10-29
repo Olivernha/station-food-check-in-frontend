@@ -23,10 +23,10 @@
           back online.
         </div>
 
-        <v-alert type="warning" variant="tonal" class="mb-4" prominent dense>
+        <v-alert type="info" variant="tonal" class="mb-4" prominent dense>
           <div class="text-body-2" :class="smAndDown ? 'text-caption' : ''">
-            Please <strong>keep this app open</strong> until you get internet connection to ensure
-            your meal data syncs properly.
+            Your meal will <strong>automatically sync</strong> when you return online. You can
+            safely close this app.
           </div>
         </v-alert>
 
@@ -129,6 +129,6 @@ const formatTime = (timestamp: Date) => {
 }
 
 .v-alert {
-  border-left: 4px solid rgb(var(--v-theme-warning)) !important;
+  border-left: 4px solid rgb(var(--v-theme-info)) !important;
 }
 </style>

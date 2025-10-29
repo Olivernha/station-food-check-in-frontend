@@ -9,8 +9,6 @@ import { useOfflineStatus } from './composables/useOfflineStatus'
 import { msalInstance } from './services/msal'
 import { useAuthStore } from './stores/auth'
 
-
-
 // Pinia setup
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -41,6 +39,15 @@ const initializeApp = async () => {
   // Initialize meal store and set up online/offline listeners
   const mealStore = useMealStore()
 
+  // Initialize offline status composable to set up global listeners
+  const offlineStatus = useOfflineStatus()
+
+  // Check for pending meals on app startup
+  console.log('🚀 App startup: checking for pending meals to sync...')
+  setTimeout(async () => {
+    await offlineStatus.triggerSyncOnActive()
+  }, 1000)
+
   // Set up online/offline event listeners
   window.addEventListener('online', () => {
     console.log('App is now online')
@@ -54,14 +61,32 @@ const initializeApp = async () => {
     mealStore.updateOnlineStatus()
   })
 
+  // Handle page visibility changes (when user returns to tab)
+  document.addEventListener('visibilitychange', async () => {
+    if (!document.hidden) {
+      console.log('👁️ Page became visible - triggering sync check...')
+      setTimeout(async () => {
+        await offlineStatus.triggerSyncOnActive()
+      }, 500)
+    }
+  })
+
+  // Handle window focus (when user returns to window)
+  window.addEventListener('focus', async () => {
+    console.log('🎯 Window focused - triggering sync check...')
+    setTimeout(async () => {
+      await offlineStatus.triggerSyncOnActive()
+    }, 500)
+  })
+
   // Listen for messages from service worker
   navigator.serviceWorker.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'MEAL_SYNC_COMPLETE') {
-      console.log('Meal sync completed, updating UI');
+      console.log('Meal sync completed, updating UI')
       // Refresh the pending meals count
-      useOfflineStatus().checkPendingMeals();
+      useOfflineStatus().checkPendingMeals()
     }
-  });
+  })
 }
 
 // Start the initialization
@@ -86,9 +111,9 @@ if ('serviceWorker' in navigator) {
     const tryRegister = async () => {
       const pathsToTry = [
         '/dev-dist/sw.js', // Development path
-        '/sw.js',          // Production path
+        '/sw.js', // Production path
         './dev-dist/sw.js',
-        './sw.js'
+        './sw.js',
       ]
 
       for (const path of pathsToTry) {

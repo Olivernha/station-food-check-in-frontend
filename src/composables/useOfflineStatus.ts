@@ -66,6 +66,13 @@ export function useOfflineStatus() {
         if (previousPendingCount > 0 && globalPendingMealsCount.value === 0) {
           const mealText = previousPendingCount === 1 ? 'meal' : 'meals'
           console.log(`✅ Successfully synced ${previousPendingCount} ${mealText}!`)
+
+          // Dispatch success event for UI feedback
+          window.dispatchEvent(
+            new CustomEvent('offlineMealsSynced', {
+              detail: { count: previousPendingCount },
+            }),
+          )
         } else if (globalPendingMealsCount.value > 0) {
           console.log(`⚠️ Still have ${globalPendingMealsCount.value} pending meals after sync`)
           // Start periodic check to keep monitoring
@@ -150,6 +157,43 @@ export function useOfflineStatus() {
   // Note: We don't remove listeners in onUnmounted because they're global
   // and should persist across component lifecycles
 
+  // Trigger sync when app becomes active (startup, tab focus, etc.)
+  const triggerSyncOnActive = async () => {
+    if (!globalIsOnline.value || isSyncing) {
+      console.log('⏭️ Skipping active sync - offline or already syncing')
+      return
+    }
+
+    const currentPendingCount = globalPendingMealsCount.value
+    console.log(`🎯 App became active - checking ${currentPendingCount} pending meals for sync...`)
+
+    if (currentPendingCount > 0) {
+      isSyncing = true
+      try {
+        await mealStore.processPendingMeals()
+        await checkPendingMeals()
+
+        const newPendingCount = globalPendingMealsCount.value
+        if (newPendingCount < currentPendingCount) {
+          const syncedCount = currentPendingCount - newPendingCount
+          console.log(`✅ Synced ${syncedCount} meals on app activation`)
+
+          // Dispatch success event
+          window.dispatchEvent(
+            new CustomEvent('offlineMealsSynced', {
+              detail: { count: syncedCount },
+            }),
+          )
+        }
+      } finally {
+        isSyncing = false
+      }
+    } else {
+      // Just refresh count to be sure
+      await checkPendingMeals()
+    }
+  }
+
   // Debug function to manually trigger sync
   const debugSync = async () => {
     console.log('🐛 DEBUG: Manual sync triggered')
@@ -173,6 +217,7 @@ export function useOfflineStatus() {
     pendingMealsCount: globalPendingMealsCount,
     checkPendingMeals,
     forceRefresh,
+    triggerSyncOnActive,
     lastCheck: globalLastCheck,
     debugSync,
   }

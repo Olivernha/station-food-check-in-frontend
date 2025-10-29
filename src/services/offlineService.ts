@@ -191,15 +191,83 @@ export const getPendingMealsByAge = async (): Promise<{
 // Register background sync for meal submission
 export const registerMealSync = async (): Promise<boolean> => {
   if (!isBackgroundSyncSupported()) {
+    console.log('⚠️ Background sync not supported, will sync on app return')
     return false
   }
 
   try {
     const registration = await navigator.serviceWorker.ready
     await (registration as any).sync.register('meal-submission')
+    console.log('✅ Background sync registered for meal submission')
     return true
   } catch (error) {
     console.error('Failed to register background sync:', error)
     return false
+  }
+}
+
+// Force sync pending meals (for manual triggers)
+export const forceSyncPendingMeals = async (): Promise<{
+  success: boolean
+  syncedCount: number
+  totalCount: number
+  errors: string[]
+}> => {
+  const result = {
+    success: false,
+    syncedCount: 0,
+    totalCount: 0,
+    errors: [] as string[],
+  }
+
+  try {
+    const pendingMeals = await getPendingMeals()
+    result.totalCount = pendingMeals.length
+
+    if (pendingMeals.length === 0) {
+      result.success = true
+      return result
+    }
+
+    console.log(`🔄 Force syncing ${pendingMeals.length} pending meals...`)
+
+    for (const meal of pendingMeals) {
+      try {
+        // Make API call to submit meal
+        const response = await fetch('/api/mobile/submit_meal_check_in', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(meal),
+        })
+
+        if (response.ok) {
+          // Remove from pending if successful
+          if (meal.id && typeof meal.id === 'number') {
+            await removePendingMeal(meal.id)
+            result.syncedCount++
+            console.log(`✅ Synced meal ID: ${meal.id}`)
+          }
+        } else {
+          const errorText = await response.text()
+          result.errors.push(`Meal ID ${meal.id}: ${errorText}`)
+          console.error(`❌ Failed to sync meal ID: ${meal.id}`, errorText)
+        }
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        result.errors.push(`Meal ID ${meal.id}: ${errorMsg}`)
+        console.error(`❌ Error syncing meal ID: ${meal.id}`, error)
+      }
+    }
+
+    result.success = result.syncedCount > 0
+    console.log(`🎉 Force sync complete: ${result.syncedCount}/${result.totalCount} meals synced`)
+
+    return result
+  } catch (error) {
+    console.error('❌ Force sync failed:', error)
+    result.errors.push(error instanceof Error ? error.message : 'Unknown error')
+    return result
   }
 }

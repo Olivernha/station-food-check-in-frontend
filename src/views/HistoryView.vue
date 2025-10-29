@@ -109,7 +109,7 @@
 
               <v-list lines="two" class="pa-0 bg-transparent">
                 <v-list-item
-                  v-for="(item, index) in historyItems"
+                  v-for="(item, index) in reversedHistory"
                   :key="index"
                   :value="index"
                   class="mb-3 mx-4 pa-5"
@@ -260,7 +260,9 @@ const currentDate = computed(() => {
     year: 'numeric',
   })
 })
-
+const reversedHistory = computed(() => {
+  return [...historyItems.value].reverse()
+})
 // Computed properties for summary
 const totalMeals = computed(() => {
   return historyItems.value.reduce((total, item) => total + item.count, 0)
