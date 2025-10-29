@@ -1,67 +1,105 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useMealStore } from '@/stores/mealStore'
 import { getPendingMeals } from '@/services/offlineService'
 
+// Global singleton state
+const globalIsOnline = ref(navigator.onLine)
+const globalPendingMealsCount = ref(0)
+const globalLastCheck = ref(Date.now())
+let isInitialized = false
+let isSyncing = false
+
 export function useOfflineStatus() {
   const mealStore = useMealStore()
-  const isOnline = ref(navigator.onLine)
-  const pendingMealsCount = ref(0)
 
-  // Check for pending meals
+  // Check for pending meals (updates global state)
   const checkPendingMeals = async () => {
     try {
       const pendingMeals = await getPendingMeals()
-      pendingMealsCount.value = pendingMeals.length
+      const newCount = pendingMeals.length
+
+      if (globalPendingMealsCount.value !== newCount) {
+        console.log(
+          `📊 Pending meals count updated: ${globalPendingMealsCount.value} → ${newCount}`,
+        )
+        globalPendingMealsCount.value = newCount
+      }
+
+      globalLastCheck.value = Date.now()
     } catch (error) {
       console.error('Failed to check pending meals:', error)
-      pendingMealsCount.value = 0
+      globalPendingMealsCount.value = 0
     }
   }
 
-  // Handle online/offline status changes
+  // Handle online/offline status changes (singleton)
   const handleOnlineStatusChange = async () => {
-    const wasOffline = !isOnline.value
-    const previousPendingCount = pendingMealsCount.value
-    isOnline.value = navigator.onLine
+    const wasOffline = !globalIsOnline.value
+    const previousPendingCount = globalPendingMealsCount.value
+    globalIsOnline.value = navigator.onLine
     mealStore.updateOnlineStatus()
 
-    if (navigator.onLine && wasOffline) {
-      // Coming back online - try to sync pending meals
-      console.log('Coming back online, attempting to sync pending meals...')
-      await mealStore.processPendingMeals()
-      await checkPendingMeals()
+    console.log(
+      `🌐 Network status changed: ${wasOffline ? 'offline' : 'online'} → ${navigator.onLine ? 'online' : 'offline'}`,
+    )
 
-      // Show success message if meals were synced
-      if (previousPendingCount > 0 && pendingMealsCount.value === 0) {
-        const mealText = previousPendingCount === 1 ? 'meal' : 'meals'
-        console.log(`✅ Successfully synced ${previousPendingCount} ${mealText}!`)
+    if (navigator.onLine && wasOffline && !isSyncing) {
+      // Coming back online - try to sync pending meals (only once)
+      isSyncing = true
+      console.log('🔄 Coming back online, attempting to sync pending meals...')
 
-        // You could emit an event here for a success notification
-        // For now, we'll just log it
+      try {
+        await mealStore.processPendingMeals()
+        await checkPendingMeals()
+
+        // Show success message if meals were synced
+        if (previousPendingCount > 0 && globalPendingMealsCount.value === 0) {
+          const mealText = previousPendingCount === 1 ? 'meal' : 'meals'
+          console.log(`✅ Successfully synced ${previousPendingCount} ${mealText}!`)
+        }
+      } finally {
+        isSyncing = false
       }
     } else if (!navigator.onLine) {
       // Going offline - check for pending meals
+      console.log('📱 Going offline, checking for pending meals...')
       await checkPendingMeals()
     }
   }
 
-  onMounted(() => {
+  // Force refresh pending meals count
+  const forceRefresh = async () => {
+    console.log('🔄 Force refreshing pending meals count...')
+    await checkPendingMeals()
+  }
+
+  // Initialize global event listeners (only once)
+  const initializeGlobalListeners = () => {
+    if (isInitialized) return
+
+    console.log('🚀 Initializing global offline status listeners')
+    isInitialized = true
+
     // Initial check
     checkPendingMeals()
 
-    // Listen for online/offline events
+    // Listen for online/offline events (only once globally)
     window.addEventListener('online', handleOnlineStatusChange)
     window.addEventListener('offline', handleOnlineStatusChange)
+  }
+
+  onMounted(() => {
+    initializeGlobalListeners()
   })
 
-  onUnmounted(() => {
-    window.removeEventListener('online', handleOnlineStatusChange)
-    window.removeEventListener('offline', handleOnlineStatusChange)
-  })
+  // Note: We don't remove listeners in onUnmounted because they're global
+  // and should persist across component lifecycles
 
   return {
-    isOnline,
-    pendingMealsCount,
+    isOnline: globalIsOnline,
+    pendingMealsCount: globalPendingMealsCount,
     checkPendingMeals,
+    forceRefresh,
+    lastCheck: globalLastCheck,
   }
 }

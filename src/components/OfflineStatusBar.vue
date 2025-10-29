@@ -68,30 +68,36 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useOfflineStatus } from '@/composables/useOfflineStatus'
+import { useMealStore } from '@/stores/mealStore'
 
 const { isOnline, pendingMealsCount } = useOfflineStatus()
+const mealStore = useMealStore()
 const showInfoDialog = ref(false)
 
 const showStatusBar = computed(() => {
-  return !isOnline.value || pendingMealsCount.value > 0
+  return !isOnline.value || pendingMealsCount.value > 0 || mealStore.isSyncing
 })
 
 const statusMessage = computed(() => {
-  if (!isOnline.value) {
+  if (mealStore.isSyncing) {
+    return `Syncing ${pendingMealsCount.value} meal${pendingMealsCount.value > 1 ? 's' : ''}...`
+  } else if (!isOnline.value) {
     return pendingMealsCount.value > 0
       ? `${pendingMealsCount.value} meal${pendingMealsCount.value > 1 ? 's' : ''} waiting to sync`
       : "You're offline"
   } else if (pendingMealsCount.value > 0) {
-    return `Syncing ${pendingMealsCount.value} meal${pendingMealsCount.value > 1 ? 's' : ''}...`
+    return `${pendingMealsCount.value} meal${pendingMealsCount.value > 1 ? 's' : ''} pending sync`
   }
   return ''
 })
 
 const statusSubtext = computed(() => {
-  if (!isOnline.value) {
+  if (mealStore.isSyncing) {
+    return 'Syncing in progress...'
+  } else if (!isOnline.value) {
     return 'Keep app open for auto-sync when online'
   } else if (pendingMealsCount.value > 0) {
-    return 'Please wait while we sync your data'
+    return 'Will sync automatically'
   }
   return ''
 })

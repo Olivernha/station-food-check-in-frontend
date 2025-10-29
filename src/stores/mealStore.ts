@@ -7,7 +7,7 @@ import {
   getPendingMeals,
   removePendingMeal,
   registerMealSync,
-  isBackgroundSyncSupported
+  isBackgroundSyncSupported,
 } from '@/services/offlineService' // Add this import
 
 // Interfaces
@@ -46,6 +46,7 @@ export const useMealStore = defineStore('meal', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const isOnline = ref(navigator.onLine) // Add online status tracking
+  const isSyncing = ref(false) // Add sync lock
 
   // Utility to clear error state
   const clearError = () => {
@@ -98,16 +99,19 @@ export const useMealStore = defineStore('meal', () => {
   ): Promise<MealHistoryRecord[]> => {
     try {
       // Calculate date range (last 2 days)
-      const toDate = new Date().toISOString().split('T')[0];
-      const fromDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const toDate = new Date().toISOString().split('T')[0]
+      const fromDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-      const res = await callApi<{ record_history: MealHistoryRecord[] }>('/mobile/get_recent_history_by_user', {
-        entraadname,
-        deptname,
-        entity,
-        from_date: fromDate,
-        to_date: toDate
-      })
+      const res = await callApi<{ record_history: MealHistoryRecord[] }>(
+        '/mobile/get_recent_history_by_user',
+        {
+          entraadname,
+          deptname,
+          entity,
+          from_date: fromDate,
+          to_date: toDate,
+        },
+      )
       return res.record_history || []
     } catch (err: any) {
       const message = err.response?.data?.error || err.message || 'Failed to fetch meal history'
@@ -125,7 +129,7 @@ export const useMealStore = defineStore('meal', () => {
     totalAmount: number,
   ): Promise<boolean> => {
     // Ensure totalAmount is a number and round it to 2 decimal places
-    const roundedTotalAmount = parseFloat(totalAmount.toFixed(2));
+    const roundedTotalAmount = parseFloat(totalAmount.toFixed(2))
 
     const mealCollection: MealCollection = {
       fullname,
@@ -171,25 +175,61 @@ export const useMealStore = defineStore('meal', () => {
 
   // Process pending meals when coming back online
   const processPendingMeals = async (): Promise<void> => {
-    if (!isOnline.value) return
-
-    const pendingMeals = await getPendingMeals()
-
-    for (const meal of pendingMeals) {
-      try {
-        await callApi('/mobile/submit_meal_check_in', meal)
-        // If successful, remove from pending
-        if (meal.id && typeof meal.id === 'number') {
-          await removePendingMeal(meal.id)
-        }
-      } catch (error) {
-        console.error('Failed to submit pending meal:', error)
-        // Keep in pending for next attempt
-      }
+    if (!isOnline.value || isSyncing.value) {
+      console.log(
+        `⏭️ Skipping sync - Online: ${isOnline.value}, Already syncing: ${isSyncing.value}`,
+      )
+      return
     }
 
-    // Dispatch a custom event to notify UI components
-    window.dispatchEvent(new CustomEvent('mealSyncComplete'));
+    isSyncing.value = true
+    console.log('🔄 Starting meal sync process...')
+
+    try {
+      const pendingMeals = await getPendingMeals()
+      console.log(`📋 Found ${pendingMeals.length} pending meals to sync`)
+
+      if (pendingMeals.length === 0) {
+        console.log('✅ No pending meals to sync')
+        return
+      }
+
+      let syncedCount = 0
+      for (const meal of pendingMeals) {
+        try {
+          console.log(`📤 Syncing meal ID: ${meal.id}`, {
+            portions: meal.count,
+            amount: meal.price,
+            user: meal.fullname,
+          })
+
+          await callApi('/mobile/submit_meal_check_in', meal)
+
+          // If successful, remove from pending
+          if (meal.id && typeof meal.id === 'number') {
+            await removePendingMeal(meal.id)
+            syncedCount++
+            console.log(`✅ Successfully synced meal ID: ${meal.id}`)
+          }
+        } catch (error) {
+          console.error(`❌ Failed to submit pending meal ID: ${meal.id}`, error)
+          // Keep in pending for next attempt
+        }
+      }
+
+      console.log(
+        `🎉 Sync complete! Successfully synced ${syncedCount}/${pendingMeals.length} meals`,
+      )
+
+      // Dispatch a custom event to notify UI components
+      window.dispatchEvent(
+        new CustomEvent('mealSyncComplete', {
+          detail: { syncedCount, totalCount: pendingMeals.length },
+        }),
+      )
+    } finally {
+      isSyncing.value = false
+    }
   }
 
   // Admin Functions
@@ -254,6 +294,7 @@ export const useMealStore = defineStore('meal', () => {
     isLoading,
     error,
     isOnline,
+    isSyncing,
     clearError,
     updateOnlineStatus,
 

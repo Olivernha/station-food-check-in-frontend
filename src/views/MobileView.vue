@@ -75,6 +75,14 @@
       @acknowledge="showOfflineAlert = false"
     />
 
+    <!-- Sync success notification -->
+    <v-snackbar v-model="showSyncSuccess" :timeout="4000" color="success" location="bottom">
+      <div class="d-flex align-center">
+        <v-icon class="mr-2">mdi-cloud-check</v-icon>
+        <span>{{ syncSuccessMessage }}</span>
+      </div>
+    </v-snackbar>
+
     <!-- Offline submission notification (backup) -->
     <v-snackbar v-model="showOfflineNotification" :timeout="5000" color="warning" location="bottom">
       <div class="d-flex align-center">
@@ -86,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import logo from '@/assets/img/tuaslogo.png'
 import AppHeader from '../components/AppHeader.vue'
 import ReadyToCollectStep from '../components/ReadyToCollectStep.vue'
@@ -112,6 +120,8 @@ const isLoading = ref(false)
 const transitionName = ref('slide-right')
 const showOfflineNotification = ref(false)
 const showOfflineAlert = ref(false)
+const showSyncSuccess = ref(false)
+const syncSuccessMessage = ref('')
 const offlineMealDetails = ref({
   portions: 1,
   amount: 8.0,
@@ -263,6 +273,24 @@ const goHome = () => {
   portionsToCollect.value = 1
   totalAmount.value = 8.0
 }
+
+// Handle sync success events
+const handleSyncComplete = (event: CustomEvent) => {
+  const { syncedCount, totalCount } = event.detail
+  if (syncedCount > 0) {
+    const mealText = syncedCount === 1 ? 'meal' : 'meals'
+    syncSuccessMessage.value = `Successfully synced ${syncedCount} ${mealText}!`
+    showSyncSuccess.value = true
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('mealSyncComplete', handleSyncComplete as EventListener)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('mealSyncComplete', handleSyncComplete as EventListener)
+})
 </script>
 
 <style scoped>
