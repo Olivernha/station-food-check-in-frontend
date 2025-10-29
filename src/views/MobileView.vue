@@ -75,6 +75,13 @@
       @acknowledge="showOfflineAlert = false"
     />
 
+    <!-- Collection Blocked Alert -->
+    <BlockedCollectionAlert
+      :show="showBlockedAlert"
+      :message="blockedMessage"
+      @acknowledge="showBlockedAlert = false"
+    />
+
     <!-- Sync success notification -->
     <v-snackbar v-model="showSyncSuccess" :timeout="4000" color="success" location="bottom">
       <div class="d-flex align-center">
@@ -104,13 +111,14 @@ import VoucherDisplayStep from '../components/VoucherDisplayStep.vue'
 import CompletionStep from '../components/CompletionStep.vue'
 import OfflineMealAlert from '../components/OfflineMealAlert.vue'
 import OfflineStatusBar from '../components/OfflineStatusBar.vue'
+import BlockedCollectionAlert from '../components/BlockedCollectionAlert.vue'
 import { useAuthStore } from '../stores/auth'
 import { useMealStore } from '../stores/mealStore'
 import { useOfflineStatus } from '@/composables/useOfflineStatus'
 
 const authStore = useAuthStore()
 const mealStore = useMealStore()
-const { checkPendingMeals } = useOfflineStatus()
+const { forceRefresh } = useOfflineStatus()
 
 // State management
 const currentStep = ref(2)
@@ -121,7 +129,9 @@ const transitionName = ref('slide-right')
 const showOfflineNotification = ref(false)
 const showOfflineAlert = ref(false)
 const showSyncSuccess = ref(false)
+const showBlockedAlert = ref(false)
 const syncSuccessMessage = ref('')
+const blockedMessage = ref('')
 const offlineMealDetails = ref({
   portions: 1,
   amount: 8.0,
@@ -180,6 +190,14 @@ const collectMeal = async () => {
   isLoading.value = true
   transitionName.value = 'slide-right'
   try {
+    // Check if collection should be blocked before starting
+    const blockCheck = await mealStore.checkCollectionBlocked()
+    if (blockCheck.blocked) {
+      blockedMessage.value = blockCheck.reason || 'Collection blocked due to old unsync data'
+      showBlockedAlert.value = true
+      return // Don't proceed with collection
+    }
+
     await new Promise((resolve) => setTimeout(resolve, 1000))
     currentStep.value = 3
   } finally {
@@ -233,7 +251,7 @@ const completeCollection = async () => {
   console.log('authStore', authStore.user)
   try {
     // Save meal collection data using the meal store with total amount only
-    const success = await mealStore.saveMealCollection(
+    const result = await mealStore.saveMealCollection(
       authStore.user?.displayName || 'Unknown User',
       authStore.user?.entraAd || 'unknown',
       authStore.user?.department || 'Operations',
@@ -242,8 +260,15 @@ const completeCollection = async () => {
       totalAmount.value,
     )
 
+    // Check if collection was blocked
+    if (result.blocked) {
+      blockedMessage.value = result.reason || 'Collection blocked due to old unsync data'
+      showBlockedAlert.value = true
+      return // Don't proceed to completion step
+    }
+
     // Show critical alert if meal was saved offline
-    if (!mealStore.isOnline) {
+    if (!mealStore.isOnline && result.success) {
       offlineMealDetails.value = {
         portions: portionsToCollect.value,
         amount: totalAmount.value,
@@ -252,12 +277,13 @@ const completeCollection = async () => {
       showOfflineAlert.value = true
     }
 
-    if (!success) {
+    if (!result.success) {
       console.error('Failed to save meal collection')
+      return // Don't proceed if failed
     }
 
     // Refresh pending meals count after saving
-    await checkPendingMeals()
+    await forceRefresh()
 
     await new Promise((resolve) => setTimeout(resolve, 800))
     currentStep.value = 6 // Go to completion step

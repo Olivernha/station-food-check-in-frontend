@@ -8,6 +8,7 @@ import {
   removePendingMeal,
   registerMealSync,
   isBackgroundSyncSupported,
+  shouldBlockCollection,
 } from '@/services/offlineService' // Add this import
 
 // Interfaces
@@ -120,6 +121,15 @@ export const useMealStore = defineStore('meal', () => {
     }
   }
 
+  // Check if meal collection should be blocked due to old unsync data
+  const checkCollectionBlocked = async (): Promise<{
+    blocked: boolean
+    reason?: string
+    ageInDays?: number
+  }> => {
+    return await shouldBlockCollection()
+  }
+
   const saveMealCollection = async (
     fullname: string,
     entraAD: string,
@@ -127,7 +137,18 @@ export const useMealStore = defineStore('meal', () => {
     portionCount: number,
     entity: string,
     totalAmount: number,
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; blocked?: boolean; reason?: string }> => {
+    // Check if collection should be blocked due to old unsync data
+    const blockCheck = await shouldBlockCollection()
+    if (blockCheck.blocked) {
+      console.log('🚫 Meal collection blocked:', blockCheck.reason)
+      return {
+        success: false,
+        blocked: true,
+        reason: blockCheck.reason,
+      }
+    }
+
     // Ensure totalAmount is a number and round it to 2 decimal places
     const roundedTotalAmount = parseFloat(totalAmount.toFixed(2))
 
@@ -140,7 +161,7 @@ export const useMealStore = defineStore('meal', () => {
       price: roundedTotalAmount, // Use the rounded value
       timestamp: new Date().toISOString(),
     }
-
+    console.log('📦 Saving meal collection:', mealCollection)
     // If offline, save to IndexedDB and register for sync
     if (!isOnline.value) {
       const saved = await saveMealForOfflineSubmission(mealCollection)
@@ -149,15 +170,15 @@ export const useMealStore = defineStore('meal', () => {
         if (isBackgroundSyncSupported()) {
           await registerMealSync()
         }
-        return true
+        return { success: true }
       }
-      return false
+      return { success: false }
     }
 
     // If online, try to submit immediately
     try {
       await callApi('/mobile/submit_meal_check_in', mealCollection)
-      return true
+      return { success: true }
     } catch (error) {
       console.error('Error submitting meal collection:', error)
       // If submission fails, save for later
@@ -167,9 +188,9 @@ export const useMealStore = defineStore('meal', () => {
         if (isBackgroundSyncSupported()) {
           await registerMealSync()
         }
-        return true
+        return { success: true }
       }
-      return false
+      return { success: false }
     }
   }
 
@@ -303,6 +324,7 @@ export const useMealStore = defineStore('meal', () => {
     getUserMealHistory,
     saveMealCollection,
     processPendingMeals,
+    checkCollectionBlocked,
 
     // Admin
     getReportDataByDate,
