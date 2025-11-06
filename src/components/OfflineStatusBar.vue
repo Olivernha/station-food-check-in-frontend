@@ -24,16 +24,20 @@
       </div>
 
       <div class="d-flex align-center">
-        <!-- Debug sync button (temporary) -->
+        <!-- Sync Now button -->
         <v-btn
           v-if="isOnline && pendingMealsCount > 0"
-          icon="mdi-sync"
-          size="small"
-          variant="text"
+          variant="outlined"
           color="orange-darken-2"
+          size="small"
           @click="handleDebugSync"
-          class="mr-1"
-        />
+          :loading="mealStore.isSyncing"
+          :disabled="mealStore.isSyncing"
+          class="mr-2"
+        >
+          <v-icon start>mdi-sync</v-icon>
+          Sync Now
+        </v-btn>
 
         <v-btn
           v-if="!isOnline"
