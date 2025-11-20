@@ -93,6 +93,7 @@
               :department="department"
               :elevation="1"
               class="mb-3"
+              @entry-deleted="refreshData"
             />
           </v-col>
 

@@ -79,14 +79,24 @@
                             {{ formatDateTime(record.datetime) }}
                           </div>
                         </div>
-                        <v-chip
-                          size="x-small"
-                          color="green-lighten-1"
-                          text-color="green-darken-3"
-                          variant="flat"
-                        >
-                          {{ record.meal_count }} portion{{ record.meal_count > 1 ? 's' : '' }} (${{ record.price.toFixed(2) }})
-                        </v-chip>
+                        <div class="d-flex align-center ga-2">
+                          <v-chip
+                            size="x-small"
+                            color="green-lighten-1"
+                            text-color="green-darken-3"
+                            variant="flat"
+                          >
+                            {{ record.meal_count }} portion{{ record.meal_count > 1 ? 's' : '' }} (${{ record.price.toFixed(2) }})
+                          </v-chip>
+                          <v-btn
+                            v-if="isToday(record.datetime)"
+                            icon="mdi-delete"
+                            size="x-small"
+                            variant="text"
+                            color="red-darken-1"
+                            @click="confirmDelete(staff, record)"
+                          />
+                        </div>
                       </div>
                     </v-card>
                   </div>
@@ -109,10 +119,76 @@
       </v-list>
     </v-card-text>
   </v-card>
+
+  <!-- Delete Confirmation Dialog -->
+  <v-dialog v-model="showDeleteDialog" max-width="450" persistent :scrim="true">
+    <v-card class="delete-alert-card">
+      <v-card-title class="d-flex align-center text-h5 pa-6 pb-4">
+        <v-icon color="red-darken-2" :size="32" class="mr-3">
+          mdi-alert-circle
+        </v-icon>
+        <span class="text-red-darken-2 font-weight-bold">
+          Confirm Delete
+        </span>
+      </v-card-title>
+
+      <v-card-text class="px-6 pb-2">
+        <div class="text-body-1 mb-4">
+          Are you sure you want to <strong>remove this meal entry</strong>? This action cannot be undone.
+        </div>
+
+        <v-alert type="warning" variant="tonal" class="mb-4" prominent dense>
+          <div class="text-body-2">
+            This will <strong>permanently delete</strong> the meal record from the system.
+          </div>
+        </v-alert>
+
+        <div v-if="recordToDelete" class="d-flex align-center pa-3 bg-grey-lighten-4 rounded">
+          <v-icon color="info" class="mr-3" :size="24">mdi-information</v-icon>
+          <div class="text-body-2">
+            <div class="font-weight-medium">Entry Details:</div>
+            <div class="text-caption text-grey-darken-1">
+              {{ recordToDelete.staff.name }} •
+              {{ recordToDelete.record.meal_count }} portion{{ recordToDelete.record.meal_count > 1 ? 's' : '' }} •
+              ${{ recordToDelete.record.price.toFixed(2) }} •
+              {{ formatDateTime(recordToDelete.record.datetime) }}
+            </div>
+          </div>
+        </div>
+      </v-card-text>
+
+      <v-card-actions class="px-6 pb-6">
+        <v-btn
+          variant="outlined"
+          size="large"
+          @click="cancelDelete"
+          :disabled="isDeleting"
+          class="px-6"
+        >
+          Cancel
+        </v-btn>
+        <v-spacer />
+        <v-btn
+          color="red-darken-2"
+          variant="elevated"
+          size="large"
+          @click="handleDelete"
+          :loading="isDeleting"
+          class="px-6"
+        >
+          <v-icon start :size="24">mdi-delete</v-icon>
+          Delete Entry
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useMealStore } from '@/stores/mealStore'
+
+const mealStore = useMealStore()
 
 interface MealRecord {
   datetime: string
@@ -123,6 +199,7 @@ interface MealRecord {
 interface Staff {
   id: number
   name: string
+  entraadname: string
   portions: number
   price: number
   checkinTime?: string
@@ -131,6 +208,8 @@ interface Staff {
 
 interface Department {
   name: string
+  deptname: string
+  entity: string
   staff: Staff[]
   totalPortions: number
   totalPrice: number
@@ -141,12 +220,24 @@ interface Props {
   elevation?: number | string
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   elevation: 0
 })
 
+const emit = defineEmits<{
+  'entry-deleted': []
+}>()
+
 // Track expanded staff
 const expandedStaff = ref<number[]>([])
+
+// Confirmation dialog state
+const showDeleteDialog = ref(false)
+const recordToDelete = ref<{
+  staff: Staff
+  record: MealRecord
+} | null>(null)
+const isDeleting = ref(false)
 
 // Toggle staff expansion
 const toggleStaffExpand = (staffId: number) => {
@@ -156,6 +247,53 @@ const toggleStaffExpand = (staffId: number) => {
   } else {
     expandedStaff.value.splice(index, 1)
   }
+}
+
+// Check if record is from today
+const isToday = (datetime: string): boolean => {
+  const recordDate = new Date(datetime).toISOString().split('T')[0]
+  const today = new Date().toISOString().split('T')[0]
+  return recordDate === today
+}
+
+// Open delete confirmation dialog
+const confirmDelete = (staff: Staff, record: MealRecord) => {
+  recordToDelete.value = { staff, record }
+  showDeleteDialog.value = true
+}
+
+// Handle delete action
+const handleDelete = async () => {
+  if (!recordToDelete.value) return
+
+  isDeleting.value = true
+  try {
+    const { staff, record } = recordToDelete.value
+
+    await mealStore.deleteMealEntry(
+      staff.entraadname,
+      props.department.deptname,
+      props.department.entity,
+      record.datetime
+    )
+
+    // Emit event to refresh data
+    emit('entry-deleted')
+
+    // Close dialog
+    showDeleteDialog.value = false
+    recordToDelete.value = null
+  } catch (error) {
+    console.error('Failed to delete meal entry:', error)
+  } finally {
+    isDeleting.value = false
+  }
+}
+
+// Cancel delete
+const cancelDelete = () => {
+  showDeleteDialog.value = false
+  recordToDelete.value = null
 }
 
 const getPortionChipColor = (portions: number): string => {
@@ -217,5 +355,25 @@ const formatDateTime = (timeString?: string): string => {
 .record-item:hover {
   background-color: rgb(var(--v-theme-blue-grey-lighten-4)) !important;
   transform: translateY(-1px);
+}
+
+.delete-alert-card {
+  animation: alertSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-top: 4px solid rgb(var(--v-theme-red-darken-2));
+}
+
+@keyframes alertSlideIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.v-alert {
+  border-left: 4px solid rgb(var(--v-theme-warning)) !important;
 }
 </style>

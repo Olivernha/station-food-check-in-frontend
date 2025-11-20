@@ -275,6 +275,27 @@ export const useMealStore = defineStore('meal', () => {
     }
   }
 
+  const deleteMealEntry = async (
+    entraadname: string,
+    deptname: string,
+    entity: string,
+    datetime: string,
+  ): Promise<boolean> => {
+    try {
+      await callApi('/admin/delete_meal_entry', {
+        entraadname,
+        deptname,
+        entity,
+        datetime,
+      })
+      return true
+    } catch (err: any) {
+      const message = err.response?.data?.error || err.message || 'Failed to delete meal entry'
+      error.value = message
+      throw new Error(message)
+    }
+  }
+
   const exportReport = async (
     endpoint: '/admin/export_excel_record' | '/admin/export_excel_record_by_department',
     date: string,
@@ -329,5 +350,6 @@ export const useMealStore = defineStore('meal', () => {
     // Admin
     getReportDataByDate,
     exportReportExcel,
+    deleteMealEntry,
   }
 })
