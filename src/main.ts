@@ -25,16 +25,18 @@ const initializeApp = async () => {
 
   const app = createApp(App)
   app.use(pinia)
+
+  // Initialize auth store BEFORE router to avoid race conditions
+  const authStore = useAuthStore()
+  await authStore.initialize()
+  console.log('Auth store initialized')
+
   app.use(router)
   app.use(vuetify)
 
   // Mount the app
   app.mount('#app')
   console.log('App mounted successfully')
-
-  // Initialize auth store
-  const authStore = useAuthStore()
-  await authStore.initialize()
 
   // Initialize meal store and set up online/offline listeners
   const mealStore = useMealStore()

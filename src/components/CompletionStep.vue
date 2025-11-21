@@ -20,8 +20,6 @@
         <div class="confetti" v-for="i in 100" :key="i" :class="`confetti-${i}`"></div>
       </div>
 
-
-
       <!-- Title -->
       <h1 class="text-h3 font-weight-bold mb-8 completion-title">Collection Complete</h1>
 
@@ -40,9 +38,7 @@
         <!-- Amount Card -->
         <div class="highlight-card amount-card">
           <div class="card-content">
-            <div class="amount-number">
-              ${{ totalAmount.toFixed(2) }}
-            </div>
+            <div class="amount-number">${{ formattedTotalAmount }}</div>
             <div class="amount-label">total amount</div>
           </div>
         </div>
@@ -132,8 +128,6 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
-
-
 @keyframes confettiStart {
   to {
     opacity: 1;
@@ -149,26 +143,106 @@ onMounted(async () => {
 }
 
 /* Individual confetti pieces with different colors and positions */
-.confetti-1 { background: #ff6b6b; left: 10%; animation-delay: 1.6s; }
-.confetti-2 { background: #4ecdc4; left: 20%; animation-delay: 1.7s; }
-.confetti-3 { background: #45b7d1; left: 30%; animation-delay: 1.8s; }
-.confetti-4 { background: #96ceb4; left: 40%; animation-delay: 1.9s; }
-.confetti-5 { background: #feca57; left: 50%; animation-delay: 2s; }
-.confetti-6 { background: #ff9ff3; left: 60%; animation-delay: 2.1s; }
-.confetti-7 { background: #54a0ff; left: 70%; animation-delay: 2.2s; }
-.confetti-8 { background: #5f27cd; left: 80%; animation-delay: 2.3s; }
-.confetti-9 { background: #00d2d3; left: 90%; animation-delay: 2.4s; }
-.confetti-10 { background: #ff9ff3; left: 15%; animation-delay: 2.5s; }
-.confetti-11 { background: #54a0ff; left: 25%; animation-delay: 2.6s; }
-.confetti-12 { background: #5f27cd; left: 35%; animation-delay: 2.7s; }
-.confetti-13 { background: #ff6b6b; left: 45%; animation-delay: 2.8s; }
-.confetti-14 { background: #4ecdc4; left: 55%; animation-delay: 2.9s; }
-.confetti-15 { background: #45b7d1; left: 65%; animation-delay: 3s; }
-.confetti-16 { background: #96ceb4; left: 75%; animation-delay: 3.1s; }
-.confetti-17 { background: #feca57; left: 85%; animation-delay: 3.2s; }
-.confetti-18 { background: #ff9ff3; left: 95%; animation-delay: 3.3s; }
-.confetti-19 { background: #54a0ff; left: 5%; animation-delay: 3.4s; }
-.confetti-20 { background: #5f27cd; left: 95%; animation-delay: 3.5s; }
+.confetti-1 {
+  background: #ff6b6b;
+  left: 10%;
+  animation-delay: 1.6s;
+}
+.confetti-2 {
+  background: #4ecdc4;
+  left: 20%;
+  animation-delay: 1.7s;
+}
+.confetti-3 {
+  background: #45b7d1;
+  left: 30%;
+  animation-delay: 1.8s;
+}
+.confetti-4 {
+  background: #96ceb4;
+  left: 40%;
+  animation-delay: 1.9s;
+}
+.confetti-5 {
+  background: #feca57;
+  left: 50%;
+  animation-delay: 2s;
+}
+.confetti-6 {
+  background: #ff9ff3;
+  left: 60%;
+  animation-delay: 2.1s;
+}
+.confetti-7 {
+  background: #54a0ff;
+  left: 70%;
+  animation-delay: 2.2s;
+}
+.confetti-8 {
+  background: #5f27cd;
+  left: 80%;
+  animation-delay: 2.3s;
+}
+.confetti-9 {
+  background: #00d2d3;
+  left: 90%;
+  animation-delay: 2.4s;
+}
+.confetti-10 {
+  background: #ff9ff3;
+  left: 15%;
+  animation-delay: 2.5s;
+}
+.confetti-11 {
+  background: #54a0ff;
+  left: 25%;
+  animation-delay: 2.6s;
+}
+.confetti-12 {
+  background: #5f27cd;
+  left: 35%;
+  animation-delay: 2.7s;
+}
+.confetti-13 {
+  background: #ff6b6b;
+  left: 45%;
+  animation-delay: 2.8s;
+}
+.confetti-14 {
+  background: #4ecdc4;
+  left: 55%;
+  animation-delay: 2.9s;
+}
+.confetti-15 {
+  background: #45b7d1;
+  left: 65%;
+  animation-delay: 3s;
+}
+.confetti-16 {
+  background: #96ceb4;
+  left: 75%;
+  animation-delay: 3.1s;
+}
+.confetti-17 {
+  background: #feca57;
+  left: 85%;
+  animation-delay: 3.2s;
+}
+.confetti-18 {
+  background: #ff9ff3;
+  left: 95%;
+  animation-delay: 3.3s;
+}
+.confetti-19 {
+  background: #54a0ff;
+  left: 5%;
+  animation-delay: 3.4s;
+}
+.confetti-20 {
+  background: #5f27cd;
+  left: 95%;
+  animation-delay: 3.5s;
+}
 
 @keyframes confettiFall {
   0% {

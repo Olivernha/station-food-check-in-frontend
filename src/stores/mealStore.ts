@@ -24,6 +24,7 @@ export interface MealCollection {
 }
 
 export interface MealHistoryRecord {
+  
   count: number
   price: number
   datetime: string
@@ -275,18 +276,10 @@ export const useMealStore = defineStore('meal', () => {
     }
   }
 
-  const deleteMealEntry = async (
-    entraadname: string,
-    deptname: string,
-    entity: string,
-    datetime: string,
-  ): Promise<boolean> => {
+  const deleteMealEntry = async (recordId: string): Promise<boolean> => {
     try {
-      await callApi('/admin/delete_meal_entry', {
-        entraadname,
-        deptname,
-        entity,
-        datetime,
+      await callApi('/admin/soft_delete_meal_record', {
+        record_id: recordId,
       })
       return true
     } catch (err: any) {

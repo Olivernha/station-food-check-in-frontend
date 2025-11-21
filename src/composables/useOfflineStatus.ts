@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useMealStore } from '@/stores/mealStore'
 import { getPendingMeals } from '@/services/offlineService'
 
@@ -150,11 +150,10 @@ export function useOfflineStatus() {
     window.addEventListener('mealSyncComplete', handleSyncComplete as unknown as EventListener)
   }
 
-  onMounted(() => {
-    initializeGlobalListeners()
-  })
+  // Initialize immediately when composable is first called
+  initializeGlobalListeners()
 
-  // Note: We don't remove listeners in onUnmounted because they're global
+  // Note: We don't remove listeners because they're global
   // and should persist across component lifecycles
 
   // Trigger sync when app becomes active (startup, tab focus, etc.)

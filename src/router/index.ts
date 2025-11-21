@@ -46,15 +46,33 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Normal auth checks
+  // Skip auth checks for public routes
+  if (to.path === '/login' || to.path === '/unauthorized') {
+    return next()
+  }
+
+  // Wait for auth store to be ready if it's still loading
+  if (authStore.isLoading) {
+    // Wait a bit for auth to initialize
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+
+  // Check authentication for protected routes
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next('/login')
   }
 
-  if ((to.meta.requiresAdmin || to.path === '/') && !authStore.user) {
-    await authStore.fetchUserProfile()
+  // Fetch user profile if needed
+  if ((to.meta.requiresAdmin || to.path === '/') && !authStore.user && authStore.isAuthenticated) {
+    try {
+      await authStore.fetchUserProfile()
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error)
+      return next('/login')
+    }
   }
 
+  // Check admin access
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
     return next('/unauthorized')
   }
